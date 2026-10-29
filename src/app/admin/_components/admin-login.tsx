@@ -40,32 +40,36 @@ export function AdminLogin({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6">
-      <div className="mx-auto w-full max-w-md">
+    <div className="min-h-dvh bg-slate-50 flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-md sm:max-w-lg lg:max-w-md">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 mb-6"
+          className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-900 mb-5 sm:mb-6"
         >
-          <ArrowLeft className="size-4" /> Kembali ke Website Utama
+          <ArrowLeft className="size-4 shrink-0" /> Kembali ke Website Utama
         </Link>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-xl">
-          <div className="flex items-center gap-3.5 mb-6">
+        <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-xl">
+          <div className="flex items-center gap-3 sm:gap-3.5 mb-5 sm:mb-6">
             <Image
               src="/logo.png"
               alt="HS Support Group Logo"
               width={48}
               height={48}
-              className="size-12 rounded-2xl object-contain"
+              className="size-11 sm:size-12 rounded-2xl object-contain shrink-0"
             />
-            <div>
-              <h1 className="text-xl font-black text-slate-900">Portal Login Admin</h1>
-              <p className="text-xs text-slate-500">CMS Layanan & Harga HS Support Group</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-black text-slate-900 truncate">
+                Portal Login Admin
+              </h1>
+              <p className="text-[11px] sm:text-xs text-slate-500">
+                CMS Layanan & Harga HS Support Group
+              </p>
             </div>
           </div>
 
-          <div className="mb-5 flex items-center gap-2 rounded-2xl border border-teal-200/80 bg-teal-50/70 px-3.5 py-2.5 text-[11px] font-semibold text-teal-900">
-            <ShieldCheck className="size-4 text-teal-600 shrink-0" />
+          <div className="mb-5 flex items-start sm:items-center gap-2 rounded-2xl border border-teal-200/80 bg-teal-50/70 px-3.5 py-2.5 text-[11px] font-semibold text-teal-900 leading-snug">
+            <ShieldCheck className="size-4 text-teal-600 shrink-0 mt-0.5 sm:mt-0" />
             <span>Dilindungi Anti Brute-Force & Sesi Enkripsi HTTP-Only</span>
           </div>
 
@@ -78,8 +82,8 @@ export function AdminLogin({
 
           <form onSubmit={onSubmit} className="space-y-4" autoComplete="off">
             <div className="space-y-1.5">
-              <Label htmlFor="admin-identifier" className="flex items-center gap-1.5">
-                <UserCheck className="size-3.5 text-slate-500" /> ID Admin atau Email
+              <Label htmlFor="admin-identifier" className="flex items-center gap-1.5 text-xs sm:text-sm">
+                <UserCheck className="size-3.5 text-slate-500 shrink-0" /> ID Admin atau Email
               </Label>
               <Input
                 id="admin-identifier"
@@ -87,14 +91,15 @@ export function AdminLogin({
                 required
                 value={identifier}
                 onChange={(e) => onIdentifierChange(e.target.value)}
-                placeholder="hspunyaadmin atau admin@hssg.com"
+                placeholder="Masukan Username"
                 autoComplete="username"
+                className="h-11 text-sm"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="admin-password" className="flex items-center gap-1.5">
-                <KeyRound className="size-3.5 text-slate-500" /> Password
+              <Label htmlFor="admin-password" className="flex items-center gap-1.5 text-xs sm:text-sm">
+                <KeyRound className="size-3.5 text-slate-500 shrink-0" /> Password
               </Label>
               <div className="relative">
                 <Input
@@ -103,15 +108,15 @@ export function AdminLogin({
                   required
                   value={password}
                   onChange={(e) => onPasswordChange(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="pr-10"
+                  placeholder="Masukan Password"
+                  className="h-11 pr-11 text-sm"
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 grid size-8 place-items-center rounded-lg text-slate-400 hover:text-slate-700"
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -121,7 +126,7 @@ export function AdminLogin({
             <Button
               type="submit"
               disabled={loginLoading}
-              className="mt-2 w-full h-11 rounded-full bg-brand-gradient text-white font-bold shadow-md"
+              className="mt-2 w-full h-11 sm:h-12 rounded-full bg-brand-gradient text-white text-sm font-bold shadow-md"
             >
               {loginLoading ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
               {loginLoading ? "Memverifikasi Kredensial..." : "Masuk ke Dashboard CMS"}

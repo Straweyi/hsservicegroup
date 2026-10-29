@@ -44,11 +44,16 @@ type AdminSession = {
 
 type CmsSectionTab = "services" | "testimonials" | "faqs" | "settings";
 
-const CMS_TABS: { id: CmsSectionTab; label: string; icon: typeof Briefcase }[] = [
-  { id: "services", label: "Layanan & Harga", icon: Briefcase },
-  { id: "testimonials", label: "Testimoni Pelanggan", icon: MessageSquareQuote },
-  { id: "faqs", label: "Tanya Jawab (FAQ)", icon: HelpCircle },
-  { id: "settings", label: "Pengaturan & WhatsApp", icon: Settings },
+const CMS_TABS: {
+  id: CmsSectionTab;
+  label: string;
+  shortLabel: string;
+  icon: typeof Briefcase;
+}[] = [
+  { id: "services", label: "Layanan & Harga", shortLabel: "Layanan", icon: Briefcase },
+  { id: "testimonials", label: "Testimoni Pelanggan", shortLabel: "Testimoni", icon: MessageSquareQuote },
+  { id: "faqs", label: "Tanya Jawab (FAQ)", shortLabel: "FAQ", icon: HelpCircle },
+  { id: "settings", label: "Pengaturan & WhatsApp", shortLabel: "Kontak & WA", icon: Settings },
 ];
 
 export function AdminClient() {
@@ -424,9 +429,9 @@ export function AdminClient() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen grid place-items-center bg-slate-50">
-        <div className="flex items-center gap-3 text-slate-600 font-semibold">
-          <Loader2 className="size-5 animate-spin text-teal-600" />
+      <div className="min-h-dvh grid place-items-center bg-slate-50 px-4">
+        <div className="flex items-center gap-3 text-slate-600 text-sm font-semibold">
+          <Loader2 className="size-5 animate-spin text-teal-600 shrink-0" />
           <span>Memverifikasi keamanan sesi Admin...</span>
         </div>
       </div>
@@ -448,7 +453,7 @@ export function AdminClient() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
+    <div className="min-h-dvh bg-slate-50 text-slate-900 pb-16 sm:pb-20">
       <AdminHeader
         adminId={session.adminId}
         userEmail={session.email}
@@ -456,9 +461,12 @@ export function AdminClient() {
         onLogout={handleLogout}
       />
 
-      <main className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 space-y-8">
-        {/* Modul Navigasi Utama CMS */}
-        <div className="flex flex-wrap gap-2 rounded-3xl border border-slate-200 bg-white p-2 shadow-sm">
+      <main className="mx-auto max-w-[1440px] px-3.5 pt-5 sm:px-6 sm:pt-7 lg:px-8 space-y-6 sm:space-y-8">
+        {/* Modul Navigasi Utama CMS: 2x2 pada HP, 4 kolom rata pada Tablet/Laptop/Komputer */}
+        <nav
+          aria-label="Modul CMS"
+          className="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-1.5 sm:p-2 shadow-sm"
+        >
           {CMS_TABS.map((t) => {
             const Icon = t.icon;
             const active = cmsTab === t.id;
@@ -467,22 +475,23 @@ export function AdminClient() {
                 key={t.id}
                 type="button"
                 onClick={() => setCmsTab(t.id)}
-                className={`inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-xs sm:text-sm font-bold transition ${
+                className={`inline-flex items-center justify-center gap-2 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold transition ${
                   active
                     ? "bg-brand-gradient text-white shadow-sm"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
-                <Icon className="size-4" />
-                <span>{t.label}</span>
+                <Icon className="size-4 shrink-0" />
+                <span className="lg:hidden truncate">{t.shortLabel}</span>
+                <span className="hidden lg:inline truncate">{t.label}</span>
               </button>
             );
           })}
-        </div>
+        </nav>
 
         {/* Tab 1: Layanan & Harga */}
         {cmsTab === "services" && (
-          <div className="space-y-8">
+          <div className="space-y-5 sm:space-y-7">
             <AdminStats
               stats={stats}
               isEmpty={rows.length === 0 && !dataLoading}
@@ -502,19 +511,21 @@ export function AdminClient() {
             />
 
             {dataLoading ? (
-              <div className="py-20 text-center text-slate-500 flex items-center justify-center gap-2">
+              <div className="py-20 text-center text-slate-500 flex items-center justify-center gap-2 text-sm">
                 <Loader2 className="size-5 animate-spin text-teal-600" />
                 <span>Memuat data layanan...</span>
               </div>
             ) : filteredRows.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-16 text-center space-y-3">
-                <p className="text-base font-bold text-slate-700">Tidak ada layanan yang cocok</p>
+              <div className="rounded-2xl sm:rounded-3xl border border-dashed border-slate-300 bg-white py-14 sm:py-16 px-4 text-center space-y-2.5">
+                <p className="text-sm sm:text-base font-bold text-slate-700">
+                  Tidak ada layanan yang cocok
+                </p>
                 <p className="text-xs text-slate-500">
                   Coba ubah kata kunci pencarian atau tambahkan layanan baru.
                 </p>
               </div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 {filteredRows.map((row) => (
                   <AdminServiceCard
                     key={row.id}
