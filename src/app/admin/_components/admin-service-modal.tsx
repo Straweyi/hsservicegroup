@@ -11,7 +11,7 @@ import {
   Trash2,
   Tag,
 } from "lucide-react";
-import { getDiscountLabel, type PriceTier } from "@/lib/data";
+import { getDiscountLabel, formatNormalPrice, type PriceTier } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -262,7 +262,7 @@ export function AdminServiceModal({
                   Daftar Paket, Harga Normal & Diskon *
                 </Label>
                 <p className="text-[11px] text-slate-500">
-                  Isi <strong>Harga Normal (Coret)</strong> jika sedang diskon — persentase hemat dihitung otomatis!
+                  Isi <strong>Harga Normal</strong> jika sedang diskon — persentase hemat dihitung otomatis!
                 </p>
               </div>
               <button
@@ -377,11 +377,11 @@ export function AdminServiceModal({
                       </div>
                     </div>
 
-                    {/* Baris 2: Pengaturan Diskon (Harga Normal Coret & Label Promo) */}
+                    {/* Baris 2: Pengaturan Diskon (Harga Normal & Label Promo) */}
                     <div className="grid gap-2.5 sm:grid-cols-12 items-center pt-1 border-t border-slate-200/60">
                       <div className="sm:col-span-5">
                         <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-rose-600 mb-1">
-                          <Tag className="size-3" /> Harga Normal / Coret (Opsional)
+                          <Tag className="size-3" /> Harga Normal (Opsional)
                         </span>
                         <Input
                           placeholder="Kosongkan jika tidak diskon (mis: Rp 200.000)"
@@ -427,8 +427,8 @@ export function AdminServiceModal({
                               <span className="rounded-full bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-extrabold text-rose-600">
                                 🔥 {autoBadge}
                               </span>
-                              <span className="text-[10px] text-slate-400 line-through decoration-rose-500">
-                                {tier.originalPrice}
+                              <span className="text-[10px] font-medium text-slate-400">
+                                {formatNormalPrice(tier.originalPrice)}
                               </span>
                             </div>
                             <span className="text-xs font-black text-emerald-700">

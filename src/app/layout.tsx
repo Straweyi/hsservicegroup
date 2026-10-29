@@ -14,9 +14,13 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Hs Support Group — Jasa Cleaning Service & Teknisi Profesional",
+  title: "Hs Support Group — Jasa Cleaning Service, Teknisi & Tennis Coaching",
   description:
-    "Jasa kebersihan rumah, kantor, apartemen, kos, cuci AC, dan teknisi rumah tangga. Tenaga profesional, respon cepat, harga transparan. Pesan online sekarang.",
+    "Jasa kebersihan rumah, kantor, apartemen, kos, cuci AC, teknisi rumah tangga, dan pelatihan tenis profesional. Tenaga berpengalaman, respon cepat, harga transparan.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

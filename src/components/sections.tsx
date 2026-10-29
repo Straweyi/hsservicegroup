@@ -2,16 +2,17 @@
 
 import {
   ClipboardList, CalendarCheck, SprayCan, SmilePlus, Star, Quote,
-  UserCheck, PackageCheck, BadgeDollarSign, AlarmClockCheck, CalendarClock, Camera, MessageCircle, ArrowRight, ShieldCheck,
+  UserCheck, PackageCheck, BadgeDollarSign, AlarmClockCheck, CalendarClock, Camera, MessageCircle, ArrowRight, ShieldCheck, HelpCircle,
 } from "lucide-react";
 import { Reveal } from "@/components/reveal";
-import { testimonials, WHATSAPP_NUMBER } from "@/lib/data";
+import { useTestimonials, useFaqs, useSiteSettings } from "@/lib/use-cms";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 const steps = [
-  { icon: ClipboardList, title: "Pilih Layanan", desc: "Tentukan layanan kebersihan atau teknisi yang dibutuhkan." },
+  { icon: ClipboardList, title: "Pilih Layanan", desc: "Tentukan layanan kebersihan, teknisi, atau latihan tenis yang dibutuhkan." },
   { icon: CalendarCheck, title: "Atur Jadwal", desc: "Isi form pemesanan dan pilih tanggal serta jam." },
   { icon: SprayCan, title: "Tim Datang", desc: "Tenaga profesional kami tiba tepat waktu dengan peralatan lengkap." },
-  { icon: SmilePlus, title: "Rumah Bersih", desc: "Nikmati hasil bersih, rapi, dan nyaman. Bayar setelah selesai." },
+  { icon: SmilePlus, title: "Beres & Nyaman", desc: "Nikmati hasil bersih, rapi, dan nyaman. Bayar setelah selesai." },
 ];
 
 export function HowItWorks() {
@@ -31,14 +32,12 @@ export function HowItWorks() {
         </Reveal>
 
         <ol className="relative mt-20 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Garis penghubung (desktop) */}
           <div
             aria-hidden
             className="absolute left-[12.5%] right-[12.5%] top-8 hidden h-px bg-slate-200 lg:block"
           />
           {steps.map((s, i) => (
             <Reveal key={s.title} delay={i * 0.12} className="group relative">
-              {/* Node bernomor */}
               <div className="relative z-10 mx-auto grid size-16 place-items-center rounded-full border-2 border-brand-500 bg-white text-xl font-bold text-brand-700 shadow-md transition duration-300 group-hover:scale-110 group-hover:bg-brand-gradient group-hover:text-white">
                 {i + 1}
               </div>
@@ -59,6 +58,8 @@ export function HowItWorks() {
 }
 
 export function Testimonials() {
+  const testimonials = useTestimonials();
+
   return (
     <section id="testimoni" className="mx-auto max-w-6xl scroll-mt-20 bg-white px-4 py-20 sm:px-6">
       <Reveal className="mx-auto max-w-2xl text-center">
@@ -67,14 +68,20 @@ export function Testimonials() {
       </Reveal>
       <div className="mt-12 grid gap-6 md:grid-cols-3">
         {testimonials.map((t, i) => (
-          <Reveal key={t.name} delay={i * 0.1} className="relative rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm transition hover:shadow-md">
-            <Quote className="absolute right-6 top-6 size-8 text-brand-100" />
-            <div className="flex gap-0.5 text-amber-400">
-              {Array.from({ length: 5 }).map((_, k) => <Star key={k} className="size-4 fill-current" />)}
+          <Reveal key={t.id} delay={i * 0.08} className="relative flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm transition hover:shadow-md">
+            <div>
+              <Quote className="absolute right-6 top-6 size-8 text-brand-100" />
+              <div className="flex gap-0.5 text-amber-400">
+                {Array.from({ length: t.rating || 5 }).map((_, k) => (
+                  <Star key={k} className="size-4 fill-current" />
+                ))}
+              </div>
+              <p className="mt-4 text-foreground/80">“{t.text}”</p>
             </div>
-            <p className="mt-4 text-foreground/80">“{t.text}”</p>
             <div className="mt-6 flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-full bg-brand-gradient font-bold text-white">{t.name[0]}</span>
+              <span className="grid size-10 place-items-center rounded-full bg-brand-gradient font-bold text-white">
+                {t.name[0]?.toUpperCase() || "P"}
+              </span>
               <div>
                 <p className="text-sm font-bold">{t.name}</p>
                 <p className="text-xs text-muted-foreground">{t.role}</p>
@@ -97,6 +104,8 @@ const reasons = [
 ];
 
 export function WhyUs() {
+  const settings = useSiteSettings();
+
   return (
     <section id="keunggulan" className="relative isolate scroll-mt-20 overflow-hidden bg-white py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -111,7 +120,6 @@ export function WhyUs() {
           <p className="mt-5 text-lg text-muted-foreground">Layanan yang konsisten membuat orang memesan lagi dan lagi.</p>
         </Reveal>
 
-        {/* Emblem tengah */}
         <Reveal className="relative mx-auto mt-12 grid size-32 place-items-center">
           <span aria-hidden className="absolute -inset-4 rounded-full border border-dashed border-brand-200" />
           <span className="relative grid size-24 place-items-center rounded-full bg-brand-gradient text-white shadow-xl ring-8 ring-white">
@@ -138,7 +146,7 @@ export function WhyUs() {
 
         <Reveal className="mt-14 text-center">
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            href={`https://wa.me/${settings.whatsapp_number}`}
             target="_blank"
             rel="noreferrer"
             className="group inline-flex items-center gap-3 rounded-full bg-brand-gradient px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:-translate-y-1 hover:brightness-110"
@@ -148,6 +156,45 @@ export function WhyUs() {
           </a>
         </Reveal>
       </div>
+    </section>
+  );
+}
+
+export function FaqSection() {
+  const faqs = useFaqs();
+
+  return (
+    <section id="faq" className="mx-auto max-w-4xl scroll-mt-20 bg-white px-4 py-20 sm:px-6">
+      <Reveal className="mx-auto max-w-2xl text-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50/60 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-brand-700">
+          <HelpCircle className="size-3.5" /> Tanya Jawab (FAQ)
+        </span>
+        <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+          Pertanyaan yang Sering Diajukan
+        </h2>
+        <p className="mt-4 text-muted-foreground text-base sm:text-lg">
+          Informasi penting seputar durasi, peralatan, dan penjadwalan layanan kami.
+        </p>
+      </Reveal>
+
+      <Reveal delay={0.1} className="mt-12">
+        <Accordion className="space-y-3">
+          {faqs.map((item) => (
+            <AccordionItem
+              key={item.id}
+              value={item.id}
+              className="rounded-2xl border border-slate-200/90 bg-white px-6 py-2 shadow-2xs transition hover:border-slate-300"
+            >
+              <AccordionTrigger className="py-4 text-base font-bold text-slate-900 hover:no-underline">
+                {item.q}
+              </AccordionTrigger>
+              <AccordionContent className="pb-4 text-sm leading-relaxed text-slate-600">
+                {item.a}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </Reveal>
     </section>
   );
 }

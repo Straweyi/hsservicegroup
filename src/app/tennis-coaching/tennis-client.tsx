@@ -21,13 +21,13 @@ import {
   Phone,
 } from "lucide-react";
 import { LinkButton } from "@/components/link-button";
-import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY } from "@/lib/data";
+import { useSiteSettings } from "@/lib/use-cms";
 
 const PROGRAMS = [
   {
     id: "private",
     title: "Private Coaching",
-    subtitle: "1 Pelatih - 1 Peserta",
+    subtitle: "Personal,Group,Corporate",
     badge: "Paling Populer",
     popular: true,
     desc: "Sesi intensif 1-on-1 yang didedikasikan penuh untuk perkembangan teknik, koreksi stroke, dan biomekanik pukulan Anda.",
@@ -41,23 +41,8 @@ const PROGRAMS = [
     defaultPriceNote: "Konsultasi jadwal & tarif via WhatsApp",
   },
   {
-    id: "semi-private",
-    title: "Semi-Private",
-    subtitle: "1 Pelatih - 2 Peserta",
-    badge: "Hemat & Seru",
-    desc: "Latihan berdua bersama teman, pasangan, atau rekan kerja. Kombinasi ideal antara koreksi personal dan interaksi rally berpasangan.",
-    features: [
-      "Biaya lebih ekonomis dibagi 2 orang",
-      "Latihan variasi drill bersama partner",
-      "Simulasi rally dan strategi double play",
-      "Sesi yang kompetitif sekaligus menyenangkan",
-      "Jadwal fleksibel disepakati bersama",
-    ],
-    defaultPriceNote: "Konsultasi jadwal & tarif via WhatsApp",
-  },
-  {
     id: "group",
-    title: "Group Clinic / Class",
+    title: "Group Class",
     subtitle: "3 - 4 Peserta",
     desc: "Program latihan grup dengan modul kurikulum terstruktur. Sangat cocok bagi yang ingin berolahraga tenis rutin sambil networking.",
     features: [
@@ -81,20 +66,6 @@ const PROGRAMS = [
       "Membangun kedisiplinan dan rasa percaya diri",
       "Pelatih sabar, ramah, dan berpengalaman dengan anak",
       "Jadwal weekend atau sore hari",
-    ],
-    defaultPriceNote: "Konsultasi jadwal & tarif via WhatsApp",
-  },
-  {
-    id: "sparring",
-    title: "Hitting & Sparring Partner",
-    subtitle: "Level Intermediate / Advanced",
-    desc: "Khusus bagi pemain yang membutuhkan partner latihan berbobot dengan bola konsisten, tempo cepat, dan simulasi pertandingan nyata.",
-    features: [
-      "Bola konsisten dan rally tempo tinggi",
-      "Simulasi pola serangan, return, dan passing shot",
-      "Kebugaran kardio dan ketahanan bertanding",
-      "Evaluasi taktik strategi permainan poin",
-      "Tersedia untuk single & double prep",
     ],
     defaultPriceNote: "Konsultasi jadwal & tarif via WhatsApp",
   },
@@ -143,6 +114,7 @@ const FAQS = [
 ];
 
 export function TennisClient() {
+  const settings = useSiteSettings();
   // Booking Form State for direct WhatsApp redirection
   const [selectedProgram, setSelectedProgram] = useState("Private Coaching");
   const [level, setLevel] = useState("Pemula (Mulai dari Nol)");
@@ -161,12 +133,12 @@ export function TennisClient() {
       (notes ? `• Catatan/Target: ${notes}\n` : "") +
       `\nMohon info ketersediaan pelatih, jadwal, dan tarifnya. Terima kasih!`;
 
-    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/${settings.whatsapp_number}?text=${encodeURIComponent(text)}`;
   };
 
   const getQuickProgramWa = (progName: string) => {
     const text = `Halo Admin HS Tennis Coaching, saya tertarik untuk mengikuti program *${progName}*. Mohon info ketersediaan pelatih dan jadwal terdekat.`;
-    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/${settings.whatsapp_number}?text=${encodeURIComponent(text)}`;
   };
 
   return (
@@ -237,7 +209,7 @@ export function TennisClient() {
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1.5">
-                  <Phone className="size-3.5 text-emerald-600" /> {WHATSAPP_DISPLAY}
+                  <Phone className="size-3.5 text-emerald-600" /> {settings.whatsapp_display}
                 </span>
               </div>
             </div>
@@ -288,19 +260,17 @@ export function TennisClient() {
             {PROGRAMS.map((prog) => (
               <div
                 key={prog.id}
-                className={`relative flex flex-col justify-between rounded-3xl border p-8 bg-white transition hover:shadow-xl ${
-                  prog.popular
-                    ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg"
-                    : "border-slate-200/90 shadow-sm hover:border-slate-300"
-                }`}
+                className={`relative flex flex-col justify-between rounded-3xl border p-8 bg-white transition hover:shadow-xl ${prog.popular
+                  ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg"
+                  : "border-slate-200/90 shadow-sm hover:border-slate-300"
+                  }`}
               >
                 {prog.badge && (
                   <span
-                    className={`absolute -top-3.5 right-6 rounded-full px-3.5 py-1 text-xs font-black uppercase tracking-wider ${
-                      prog.popular
-                        ? "bg-emerald-600 text-white shadow-sm"
-                        : "bg-slate-900 text-white"
-                    }`}
+                    className={`absolute -top-3.5 right-6 rounded-full px-3.5 py-1 text-xs font-black uppercase tracking-wider ${prog.popular
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "bg-slate-900 text-white"
+                      }`}
                   >
                     {prog.badge}
                   </span>
@@ -396,11 +366,10 @@ export function TennisClient() {
                       type="button"
                       key={item}
                       onClick={() => setSelectedProgram(item)}
-                      className={`text-left px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
-                        selectedProgram === item
-                          ? "border-emerald-600 bg-emerald-50/70 text-emerald-900 font-bold ring-1 ring-emerald-600"
-                          : "border-slate-200 hover:border-slate-300 text-slate-700 bg-white"
-                      }`}
+                      className={`text-left px-4 py-3 rounded-2xl border text-xs font-semibold transition ${selectedProgram === item
+                        ? "border-emerald-600 bg-emerald-50/70 text-emerald-900 font-bold ring-1 ring-emerald-600"
+                        : "border-slate-200 hover:border-slate-300 text-slate-700 bg-white"
+                        }`}
                     >
                       {item}
                     </button>
@@ -423,11 +392,10 @@ export function TennisClient() {
                       type="button"
                       key={lvl}
                       onClick={() => setLevel(lvl)}
-                      className={`text-left px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
-                        level === lvl
-                          ? "border-emerald-600 bg-emerald-50/70 text-emerald-900 font-bold ring-1 ring-emerald-600"
-                          : "border-slate-200 hover:border-slate-300 text-slate-700 bg-white"
-                      }`}
+                      className={`text-left px-4 py-3 rounded-2xl border text-xs font-semibold transition ${level === lvl
+                        ? "border-emerald-600 bg-emerald-50/70 text-emerald-900 font-bold ring-1 ring-emerald-600"
+                        : "border-slate-200 hover:border-slate-300 text-slate-700 bg-white"
+                        }`}
                     >
                       {lvl}
                     </button>
@@ -443,20 +411,19 @@ export function TennisClient() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                   {[
                     "Weekday Pagi (06.00 - 09.00)",
-                    "Weekday Sore / Malam (16.00 - 21.00)",
+                    "Weekday Sore / Malam (16.00 - 22.00)",
                     "Weekend Pagi (06.00 - 10.00)",
-                    "Weekend Sore (16.00 - 20.00)",
+                    "Weekend Sore (16.00 - 22.00)",
                     "Jadwal Fleksibel (Bisa Menyesuaikan)",
                   ].map((time) => (
                     <button
                       type="button"
                       key={time}
                       onClick={() => setPreferredTime(time)}
-                      className={`text-left px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
-                        preferredTime === time
-                          ? "border-emerald-600 bg-emerald-50/70 text-emerald-900 font-bold ring-1 ring-emerald-600"
-                          : "border-slate-200 hover:border-slate-300 text-slate-700 bg-white"
-                      }`}
+                      className={`text-left px-4 py-3 rounded-2xl border text-xs font-semibold transition ${preferredTime === time
+                        ? "border-emerald-600 bg-emerald-50/70 text-emerald-900 font-bold ring-1 ring-emerald-600"
+                        : "border-slate-200 hover:border-slate-300 text-slate-700 bg-white"
+                        }`}
                     >
                       {time}
                     </button>

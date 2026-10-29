@@ -1,76 +1,85 @@
-'use client'
+"use client";
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Send, MessageCircle } from "lucide-react";
+import { MessageCircle, Check } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
-import { services, WHATSAPP_NUMBER } from "@/lib/data";
+import { getDiscountLabel, formatNormalPrice } from "@/lib/data";
+import { useServices } from "@/lib/use-services";
+import { useSiteSettings } from "@/lib/use-cms";
 
 const times = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
 const selectCls =
   "h-10 w-full rounded-lg border border-input bg-white px-3 text-sm outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export function Booking() {
-  const [loading, setLoading] = useState(false);
-  const [serviceId, setServiceId] = useState(services[0].id);
-
+  const { services } = useServices();
+  const settings = useSiteSettings();
+  const [serviceId, setServiceId] = useState(services[0]?.id ?? "home-cleaning");
+  const [selectedTierIndex, setSelectedTierIndex] = useState(0);
   const [today, setToday] = useState<string | undefined>(undefined);
 
+  const selectedService = services.find((s) => s.id === serviceId) ?? services[0];
+  const selectedTier = selectedService?.tiers[selectedTierIndex] ?? selectedService?.tiers[0];
+
   useEffect(() => {
-    // Dihitung di client setelah mount agar tidak dibekukan saat prerender.
-    // Gunakan tanggal lokal (bukan UTC) supaya tidak mundur sehari di zona WIB.
     const d = new Date();
     const pad = (n: number) => String(n).padStart(2, "0");
     setToday(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+
+    const params = new URLSearchParams(window.location.search);
+    const paramService = params.get("service");
+    if (paramService) {
+      setServiceId(paramService);
+      setSelectedTierIndex(0);
+    }
   }, []);
 
   useEffect(() => {
-    const h = (e: Event) => setServiceId((e as CustomEvent<string>).detail);
+    const h = (e: Event) => {
+      setServiceId((e as CustomEvent<string>).detail);
+      setSelectedTierIndex(0);
+    };
     window.addEventListener("select-service", h);
     return () => window.removeEventListener("select-service", h);
   }, []);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
-    const service = services.find((s) => s.id === serviceId)!;
-    const payload = {
-      name: String(fd.get("name")).trim(),
-      phone: String(fd.get("phone")).trim(),
-      address: String(fd.get("address")).trim(),
-      service_id: service.id,
-      service_name: service.name,
-      scheduled_date: String(fd.get("date")),
-      scheduled_time: String(fd.get("time")),
-      notes: String(fd.get("notes") || "").trim() || null,
-    };
+    const name = String(fd.get("name")).trim();
+    const phone = String(fd.get("phone")).trim();
+    const address = String(fd.get("address")).trim();
+    const date = String(fd.get("date"));
+    const time = String(fd.get("time"));
+    const notes = String(fd.get("notes") || "").trim();
 
-    setLoading(true);
-    try {
-      if (supabase) {
-        const { error } = await supabase.from("bookings").insert(payload);
-        if (error) throw error;
-        toast.success("Pesanan terkirim! Tim kami akan segera menghubungi Anda.");
-        form.reset();
-      } else {
-        // Fallback saat Supabase belum dikonfigurasi: kirim via WhatsApp
-        const msg = `Halo Hs Support, saya ingin pesan *${payload.service_name}*%0A` +
-          `Nama: ${payload.name}%0AAlamat: ${payload.address}%0A` +
-          `Jadwal: ${payload.scheduled_date} ${payload.scheduled_time}%0ACatatan: ${payload.notes ?? "-"}`;
-        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
-        toast.info("Supabase belum dikonfigurasi — dialihkan ke WhatsApp.");
-      }
-    } catch {
-      toast.error("Gagal mengirim pesanan. Silakan coba lagi atau hubungi via WhatsApp.");
-    } finally {
-      setLoading(false);
-    }
+    const discountBadge = selectedTier ? getDiscountLabel(selectedTier) : null;
+    const tierInfo = selectedTier
+      ? discountBadge && selectedTier.originalPrice
+        ? `${selectedTier.label} — ${selectedTier.price} (Harga Promo dari ${selectedTier.originalPrice})`
+        : `${selectedTier.label} (${selectedTier.price})`
+      : "-";
+
+    const text =
+      `Halo Admin HS Support Group,\n\n` +
+      `Saya ingin memesan layanan berikut:\n` +
+      `• Layanan: *${selectedService?.name ?? serviceId}*\n` +
+      `• Paket / Tarif: *${tierInfo}*\n` +
+      `• Jadwal: ${date} pukul ${time} WIB\n` +
+      `• Nama: ${name}\n` +
+      `• No. WhatsApp: ${phone}\n` +
+      `• Alamat: ${address}\n` +
+      (notes ? `• Catatan: ${notes}\n` : "") +
+      `\nMohon konfirmasi ketersediaan jadwal tim. Terima kasih!`;
+
+    window.open(`https://wa.me/${settings.whatsapp_number}?text=${encodeURIComponent(text)}`, "_blank");
+    toast.success("Membuka WhatsApp untuk mengirim detail pesanan Anda...");
   }
 
   return (
@@ -80,15 +89,15 @@ export function Booking() {
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-600">Pesan Sekarang</p>
           <h2 className="mt-3 text-3xl font-bold sm:text-5xl">Jadwalkan layanan Anda</h2>
           <p className="mt-4 text-muted-foreground">
-            Isi formulir, tim kami akan mengonfirmasi jadwal dalam waktu singkat. Lebih suka chat langsung?
+            Pilih layanan dan paket harga di samping, formulir akan otomatis menyiapkan format pesanan lengkap ke WhatsApp Admin kami.
           </p>
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            href={`https://wa.me/${settings.whatsapp_number}`}
             target="_blank"
             rel="noreferrer"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3 font-semibold text-white shadow-lg transition hover:scale-105"
           >
-            <MessageCircle className="size-5" /> Chat WhatsApp
+            <MessageCircle className="size-5" /> Chat Langsung via WhatsApp
           </a>
         </Reveal>
 
@@ -104,17 +113,90 @@ export function Booking() {
                 <Input id="phone" name="phone" type="tel" required pattern="[0-9+\- ]{8,16}" placeholder="08xxxxxxxxxx" />
               </div>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="service">Layanan</Label>
-              <select id="service" value={serviceId} onChange={(e) => setServiceId(e.target.value)} className={selectCls}>
+              <Label htmlFor="service">Pilih Layanan</Label>
+              <select
+                id="service"
+                value={serviceId}
+                onChange={(e) => {
+                  setServiceId(e.target.value);
+                  setSelectedTierIndex(0);
+                }}
+                className={selectCls}
+              >
                 <optgroup label="Jasa Kebersihan">
-                  {services.filter((s) => s.category === "kebersihan").map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  {services.filter((s) => s.category === "kebersihan").map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
                 </optgroup>
                 <optgroup label="Jasa Teknisi">
-                  {services.filter((s) => s.category === "teknisi").map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  {services.filter((s) => s.category === "teknisi").map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Tennis">
+                  {services.filter((s) => s.category === "tennis").map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
                 </optgroup>
               </select>
             </div>
+
+            {/* Pilihan Paket / Tier Harga */}
+            {selectedService && selectedService.tiers.length > 0 && (
+              <div className="space-y-2">
+                <Label>Pilih Paket & Estimasi Tarif</Label>
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  {selectedService.tiers.map((tier, idx) => {
+                    const active = idx === selectedTierIndex;
+                    const discountBadge = getDiscountLabel(tier);
+                    const spanFull =
+                      /whatsapp/i.test(tier.price) ||
+                      selectedService.tiers.length === 1 ||
+                      (selectedService.tiers.length % 2 === 1 &&
+                        idx === selectedService.tiers.length - 1);
+                    return (
+                      <button
+                        key={tier.label}
+                        type="button"
+                        onClick={() => setSelectedTierIndex(idx)}
+                        className={`flex w-full items-center justify-between gap-2 rounded-2xl border p-3.5 text-left text-xs transition ${
+                          spanFull ? "sm:col-span-2" : ""
+                        } ${
+                          active
+                            ? "border-teal-600 bg-teal-50/70 text-teal-950 ring-2 ring-teal-500/20"
+                            : "border-slate-200 bg-slate-50/50 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="space-y-1">
+                          <span className="flex items-center gap-1.5 font-bold">
+                            <Check className={`size-3.5 shrink-0 ${active ? "text-teal-600 stroke-[3]" : "text-slate-400"}`} />
+                            <span>{tier.label}</span>
+                          </span>
+                          {discountBadge && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 border border-rose-200 px-2 py-0.5 text-[10px] font-extrabold text-rose-600 ml-5">
+                              🔥 {discountBadge}
+                            </span>
+                          )}
+                        </div>
+                        <div className="ml-auto text-right shrink-0">
+                          {discountBadge && tier.originalPrice && (
+                            <span className="block text-[10px] font-medium text-slate-400">
+                              {formatNormalPrice(tier.originalPrice)}
+                            </span>
+                          )}
+                          <span className={`font-black text-sm ${discountBadge ? "text-emerald-700" : "text-slate-900"}`}>
+                            {tier.price}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="date">Tanggal</Label>
@@ -127,17 +209,20 @@ export function Booking() {
                 </select>
               </div>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="address">Alamat lengkap</Label>
               <Textarea id="address" name="address" required rows={2} placeholder="Jalan, nomor, kelurahan, kota" />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="notes">Catatan (opsional)</Label>
-              <Textarea id="notes" name="notes" rows={2} placeholder="Luas ruangan, kebutuhan khusus, dll." />
+              <Textarea id="notes" name="notes" rows={2} placeholder="Luas ruangan, keluhan AC, kebutuhan khusus, dll." />
             </div>
-            <Button id="submit-booking" type="submit" disabled={loading} className="h-12 w-full rounded-full bg-brand-gradient text-base">
-              {loading ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
-              {loading ? "Mengirim..." : "Kirim Pesanan"}
+
+            <Button id="submit-booking" type="submit" className="h-12 w-full rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-base shadow-md">
+              <MessageCircle className="size-5" />
+              Pesan Sekarang via WhatsApp
             </Button>
           </form>
         </Reveal>

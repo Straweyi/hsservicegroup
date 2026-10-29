@@ -1,19 +1,24 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X, Sparkles, MessageCircle, ChevronDown, ArrowRight } from "lucide-react";
+import { Menu, X, MessageCircle, ChevronDown, ArrowRight } from "lucide-react";
 import { LinkButton } from "@/components/link-button";
-import { services, WHATSAPP_NUMBER } from "@/lib/data";
+import { useServices } from "@/lib/use-services";
+import { useSiteSettings } from "@/lib/use-cms";
 
 const navLinks = [
   { href: "/#cara-kerja", label: "Cara Kerja" },
   { href: "/#testimoni", label: "Testimoni" },
   { href: "/#keunggulan", label: "Keunggulan" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
 export function Navbar() {
+  const { services } = useServices();
+  const settings = useSiteSettings();
   const [open, setOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
@@ -51,11 +56,16 @@ export function Navbar() {
       <nav className="mx-auto flex h-16 sm:h-18 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 font-bold text-brand-800">
-          <span className="grid size-10 place-items-center rounded-2xl bg-brand-gradient text-white shadow-md shadow-brand-500/20">
-            <Sparkles className="size-5" />
-          </span>
+          <Image
+            src="/logo.png"
+            alt="HS Support Group Logo"
+            width={44}
+            height={44}
+            priority
+            className="size-10 sm:size-11 rounded-xl object-contain"
+          />
           <span className="leading-tight">
-            <span className="text-base font-extrabold tracking-tight">Hs Support</span>
+            <span className="text-base font-extrabold tracking-tight">HS Support</span>
             <span className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Group</span>
           </span>
         </Link>
@@ -99,7 +109,7 @@ export function Navbar() {
                           <span className="text-xs font-black uppercase tracking-wider text-teal-700">
                             Jasa Kebersihan
                           </span>
-                          <span className="text-[10px] text-slate-400 font-medium">9 Layanan</span>
+                          <span className="text-[10px] text-slate-400 font-medium">{kebersihanServices.length} Layanan</span>
                         </div>
                         <ul className="space-y-1">
                           {kebersihanServices.map((s) => (
@@ -123,7 +133,7 @@ export function Navbar() {
                           <span className="text-xs font-black uppercase tracking-wider text-teal-700">
                             Jasa Teknisi
                           </span>
-                          <span className="text-[10px] text-slate-400 font-medium">8 Layanan</span>
+                          <span className="text-[10px] text-slate-400 font-medium">{teknisiServices.length} Layanan</span>
                         </div>
                         <ul className="space-y-1">
                           {teknisiServices.map((s) => (
@@ -166,19 +176,6 @@ export function Navbar() {
             </AnimatePresence>
           </li>
 
-          {/* HS Tennis Coaching Link */}
-          <li>
-            <Link
-              href="/tennis-coaching"
-              className="group flex items-center gap-1.5 text-sm font-semibold text-slate-800 transition hover:text-brand-600"
-            >
-              <span>Tennis Coaching</span>
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold uppercase text-emerald-700 tracking-wide">
-                Sport
-              </span>
-            </Link>
-          </li>
-
           {navLinks.map((l) => (
             <li key={l.href}>
               <Link href={l.href} className="text-sm font-semibold text-slate-700 transition hover:text-primary">
@@ -191,7 +188,7 @@ export function Navbar() {
         {/* Desktop Buttons */}
         <div className="hidden items-center gap-2.5 md:flex">
           <LinkButton
-            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            href={`https://wa.me/${settings.whatsapp_number}`}
             target="_blank"
             rel="noreferrer"
             variant="outline"
@@ -312,7 +309,7 @@ export function Navbar() {
 
             <div className="mt-3 flex flex-col gap-2 pt-3 border-t border-slate-100">
               <LinkButton
-                href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                href={`https://wa.me/${settings.whatsapp_number}`}
                 target="_blank"
                 rel="noreferrer"
                 variant="outline"

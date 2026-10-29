@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil, Eye, EyeOff, Trash2, Tag } from "lucide-react";
-import { getDiscountLabel } from "@/lib/data";
+import { getDiscountLabel, formatNormalPrice } from "@/lib/data";
 import type { ServiceRow } from "@/lib/services-store";
 
 type AdminServiceCardProps = {
@@ -21,9 +21,8 @@ export function AdminServiceCard({
 
   return (
     <div
-      className={`flex flex-col justify-between rounded-3xl border bg-white p-5 shadow-sm transition hover:shadow-md ${
-        row.is_active ? "border-slate-200/90" : "border-slate-200 bg-slate-50/70 opacity-75"
-      }`}
+      className={`flex flex-col justify-between rounded-3xl border bg-white p-5 shadow-sm transition hover:shadow-md ${row.is_active ? "border-slate-200/90" : "border-slate-200 bg-slate-50/70 opacity-75"
+        }`}
     >
       <div>
         {/* Image & Category Status */}
@@ -39,8 +38,8 @@ export function AdminServiceCard({
               {row.category === "kebersihan"
                 ? "Kebersihan"
                 : row.category === "teknisi"
-                ? "Teknisi"
-                : "Tennis"}
+                  ? "Teknisi"
+                  : "Tennis"}
             </span>
             <div className="flex items-center gap-1.5">
               {hasPromo && (
@@ -49,11 +48,10 @@ export function AdminServiceCard({
                 </span>
               )}
               <span
-                className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
-                  row.is_active
+                className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${row.is_active
                     ? "bg-emerald-500/90 text-white"
                     : "bg-slate-700/90 text-slate-200"
-                }`}
+                  }`}
               >
                 {row.is_active ? "Aktif" : "Tersembunyi"}
               </span>
@@ -82,11 +80,10 @@ export function AdminServiceCard({
             return (
               <div
                 key={idx}
-                className={`flex items-center justify-between text-xs py-1.5 px-2.5 rounded-xl border ${
-                  discountBadge
+                className={`flex items-center justify-between text-xs py-1.5 px-2.5 rounded-xl border ${discountBadge
                     ? "border-emerald-200/80 bg-emerald-50/50"
                     : "border-transparent bg-slate-50"
-                }`}
+                  }`}
               >
                 <span className="font-medium text-slate-700 flex flex-wrap items-center gap-1.5">
                   <span>{t.label}</span>
@@ -103,14 +100,13 @@ export function AdminServiceCard({
                 </span>
                 <div className="text-right shrink-0">
                   {discountBadge && t.originalPrice && (
-                    <span className="mr-1.5 text-[10px] text-slate-400 line-through decoration-rose-500">
-                      {t.originalPrice}
+                    <span className="mr-1.5 text-[10px] font-medium text-slate-400">
+                      {formatNormalPrice(t.originalPrice)} ·
                     </span>
                   )}
                   <span
-                    className={`font-extrabold ${
-                      discountBadge ? "text-emerald-700" : "text-slate-900"
-                    }`}
+                    className={`font-extrabold ${discountBadge ? "text-emerald-700" : "text-slate-900"
+                      }`}
                   >
                     {t.price}
                   </span>

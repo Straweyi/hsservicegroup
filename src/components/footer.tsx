@@ -1,18 +1,20 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Sparkles, Phone, MessageCircle } from "lucide-react";
-import { WHATSAPP_DISPLAY, WHATSAPP_NUMBER } from "@/lib/data";
+import { Phone, MessageCircle } from "lucide-react";
+import { useSiteSettings } from "@/lib/use-cms";
 
 export function Footer() {
+  const settings = useSiteSettings();
   const [year, setYear] = useState<number | null>(null);
   useEffect(() => setYear(new Date().getFullYear()), []);
 
   return (
     <>
       <a
-        href={`https://wa.me/${WHATSAPP_NUMBER}`}
+        href={`https://wa.me/${settings.whatsapp_number}`}
         target="_blank"
         rel="noreferrer"
         aria-label="Chat WhatsApp"
@@ -27,9 +29,13 @@ export function Footer() {
             {/* Col 1: Brand & Info */}
             <div className="space-y-4">
               <div className="flex items-center gap-2.5">
-                <span className="grid size-10 place-items-center rounded-xl bg-brand-gradient text-white shadow-sm">
-                  <Sparkles className="size-5" />
-                </span>
+                <Image
+                  src="/logo.png"
+                  alt="HS Support Group Logo"
+                  width={44}
+                  height={44}
+                  className="size-11 rounded-xl object-contain"
+                />
                 <div>
                   <p className="font-extrabold text-slate-900 tracking-tight leading-tight">Hs Support Group</p>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cleaning • Technician • Sports</p>
@@ -61,7 +67,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link href="/#layanan" className="font-semibold text-brand-600 hover:underline">
-                    Semua 17 Layanan Service →
+                    Semua Layanan Service →
                   </Link>
                 </li>
               </ul>
@@ -103,13 +109,13 @@ export function Footer() {
             <div className="space-y-3">
               <p className="text-xs font-black uppercase tracking-wider text-slate-900 mb-4">Kontak & Pemesanan</p>
               <p className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                <Phone className="size-4 text-brand-600 shrink-0" /> {WHATSAPP_DISPLAY}
+                <Phone className="size-4 text-brand-600 shrink-0" /> {settings.whatsapp_display}
               </p>
               <p className="text-[11px] text-slate-500">
-                Layanan Pelanggan: Setiap Hari (08.00 - 20.00 WIB)
+                Layanan Pelanggan: {settings.operating_hours}
               </p>
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                href={`https://wa.me/${settings.whatsapp_number}`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
@@ -121,7 +127,7 @@ export function Footer() {
 
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <p>© {year ?? ""} Hs Support Group. All rights reserved.</p>
-            <p>Karena rumah bersih dan hidup sehat dimulai dari pelayanan terpercaya.</p>
+            <p>{settings.tagline}</p>
           </div>
         </div>
       </footer>

@@ -7,8 +7,7 @@ import {
   Check,
   MessageCircle,
   Sparkles,
-  ShoppingBag,
-  RefreshCw,
+  Tag,
   type LucideIcon,
   Home,
   Building2,
@@ -21,14 +20,19 @@ import {
   Refrigerator,
   Waves,
   Plug,
+  Trophy,
+  Users,
+  Target,
 } from "lucide-react";
 import { Reveal } from "@/components/reveal";
-import { services, type Service } from "@/lib/data";
+import { getDiscountLabel, formatNormalPrice, type Service } from "@/lib/data";
+import { useServices } from "@/lib/use-services";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { id: "kebersihan", label: "Jasa Kebersihan", sub: "Rumah · Kantor · Apartemen · Kos" },
   { id: "teknisi", label: "Jasa Teknisi", sub: "AC · Listrik · Plumbing · Elektronik" },
+  { id: "tennis", label: "Tennis", sub: "Private Coaching · Group Class · Kids & Junior" },
 ] as const;
 
 const iconMap: Record<string, LucideIcon> = {
@@ -43,9 +47,20 @@ const iconMap: Record<string, LucideIcon> = {
   Refrigerator,
   Waves,
   Plug,
+  Trophy,
+  Users,
+  Target,
+  Sparkles,
 };
 
+function getCategoryLabel(category: Service["category"]) {
+  if (category === "kebersihan") return "Jasa Kebersihan";
+  if (category === "teknisi") return "Jasa Teknisi";
+  return "Tennis Coaching";
+}
+
 export function Services() {
+  const { services } = useServices();
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>("kebersihan");
 
   const list = services.filter((s) => s.category === tab);
@@ -63,7 +78,7 @@ export function Services() {
       </Reveal>
 
       {/* Segmented Tab Filter */}
-      <div role="tablist" className="mx-auto mt-10 flex w-fit gap-1 rounded-full border border-slate-200 bg-white p-1.5 shadow-sm">
+      <div role="tablist" className="mx-auto mt-10 flex flex-wrap justify-center w-fit gap-1 rounded-full border border-slate-200 bg-white p-1.5 shadow-sm">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -72,7 +87,7 @@ export function Services() {
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              "relative rounded-full px-6 py-2.5 text-sm font-bold transition-colors sm:px-8",
+              "relative rounded-full px-5 py-2.5 text-sm font-bold transition-colors sm:px-8",
               tab === t.id ? "text-white" : "text-slate-600 hover:text-slate-900"
             )}
           >
@@ -97,11 +112,16 @@ export function Services() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.3 }}
-          className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
+          className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-6"
         >
           {list.map((s, i) => {
             const Icon = iconMap[s.icon] ?? Sparkles;
             const isHorizontal = i % 4 === 0;
+            const detailHref = s.category === "tennis" ? "/tennis-coaching" : `/layanan/${s.id}`;
+            const groupStart = Math.floor(i / 4) * 4;
+            const remainingVerticalsInGroup = Math.min(3, list.length - (groupStart + 1));
+            const verticalColSpan = remainingVerticalsInGroup === 2 ? "lg:col-span-3" : "lg:col-span-2";
+            const hasPromo = s.tiers.some((t) => Boolean(getDiscountLabel(t)));
 
             if (isHorizontal) {
               return (
@@ -113,18 +133,23 @@ export function Services() {
                   className="col-span-full overflow-hidden rounded-[2rem] border border-slate-200/90 bg-white p-3 sm:p-4 shadow-sm transition-all duration-300 hover:border-slate-300 hover:shadow-xl grid lg:grid-cols-12 gap-6"
                 >
                   {/* Left Image Column */}
-                  <div className="relative min-h-[260px] lg:col-span-5 overflow-hidden rounded-[1.5rem] bg-slate-100">
+                  <div className="relative min-h-[260px] sm:min-h-[300px] lg:col-span-5 overflow-hidden rounded-[1.5rem] bg-slate-100">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={s.image || "/services/home.jpg"}
                       alt={s.name}
                       loading="lazy"
-                      className="size-full object-cover transition-transform duration-700 hover:scale-105"
+                      className="size-full object-cover object-top transition-transform duration-700 hover:scale-105"
                     />
                     <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 px-3.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
                       <Icon className="size-3.5 text-teal-400" />
-                      {s.category === "kebersihan" ? "Jasa Kebersihan" : "Jasa Teknisi"}
+                      {getCategoryLabel(s.category)}
                     </span>
+                    {hasPromo && (
+                      <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md">
+                        <Tag className="size-3" /> Promo Spesial
+                      </span>
+                    )}
                   </div>
 
                   {/* Right Content Column */}
@@ -135,7 +160,7 @@ export function Services() {
                           ✦ LAYANAN UTAMA
                         </span>
                         <Link
-                          href={`/layanan/${s.id}`}
+                          href={detailHref}
                           className="inline-flex items-center gap-1 text-xs font-bold text-teal-600 hover:text-teal-700 hover:underline"
                         >
                           Detail →
@@ -145,22 +170,67 @@ export function Services() {
                       <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 leading-snug">{s.name}</h3>
                       <p className="mt-2 text-sm leading-relaxed text-slate-500">{s.desc}</p>
 
-                      {/* Price Tiers List - in 2 columns */}
+                      {/* Price Tiers List */}
                       <div className="mt-5 grid sm:grid-cols-2 gap-3 border-t border-slate-100 pt-4">
-                        {s.tiers.map((t) => (
-                          <div key={t.label} className="flex items-center justify-between text-sm py-1.5 px-3.5 rounded-xl bg-slate-50/70 border border-slate-100">
-                            <div className="flex items-center gap-2 font-medium text-slate-700">
-                              <Check className="size-4 shrink-0 text-teal-500 stroke-[2.5]" />
-                              <span>{t.label}</span>
-                              {t.popular && (
-                                <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">
-                                  ⭐ Populer
-                                </span>
+                        {s.tiers.map((t, idx) => {
+                          const discountBadge = getDiscountLabel(t);
+                          const isWhatsAppPrice = /whatsapp/i.test(t.price);
+                          const isSingleOrOddLast =
+                            s.tiers.length === 1 ||
+                            (s.tiers.length % 2 === 1 && idx === s.tiers.length - 1);
+                          const spanFull = isWhatsAppPrice || isSingleOrOddLast;
+                          return (
+                            <div
+                              key={t.label}
+                              className={cn(
+                                "flex w-full items-center justify-between gap-2 text-sm py-2.5 px-3.5 rounded-2xl border transition-all",
+                                spanFull && "sm:col-span-2",
+                                discountBadge
+                                  ? "border-emerald-200/90 bg-gradient-to-r from-emerald-50/70 via-white to-teal-50/40 shadow-2xs"
+                                  : "bg-slate-50/70 border-slate-100"
                               )}
+                            >
+                              <div className="space-y-1">
+                                <div className="flex flex-wrap items-center gap-1.5 font-semibold text-slate-800">
+                                  <Check className="size-4 shrink-0 text-teal-600 stroke-[2.5]" />
+                                  <span>{t.label}</span>
+                                </div>
+                                {(t.popular || discountBadge) && (
+                                  <div className="flex flex-wrap items-center gap-1.5 pl-5">
+                                    {discountBadge && (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 border border-rose-200 px-2 py-0.5 text-[10px] font-extrabold text-rose-600">
+                                        🔥 {discountBadge}
+                                      </span>
+                                    )}
+                                    {t.popular && (
+                                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">
+                                        ⭐ Populer
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="ml-auto text-right shrink-0">
+                                {discountBadge && t.originalPrice && (
+                                  <span className="block text-[11px] font-medium text-slate-400">
+                                    {formatNormalPrice(t.originalPrice)}
+                                  </span>
+                                )}
+                                <span
+                                  className={cn(
+                                    "font-black tracking-tight",
+                                    discountBadge
+                                      ? "text-base text-emerald-700"
+                                      : "text-sm sm:text-base text-slate-900"
+                                  )}
+                                >
+                                  {t.price}
+                                </span>
+                              </div>
                             </div>
-                            <span className="font-extrabold text-slate-900">{t.price}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -168,7 +238,9 @@ export function Services() {
                     <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-slate-100 pt-5">
                       <p className="text-xs text-slate-400 flex items-center gap-1.5">
                         <Sparkles className="size-3.5 text-teal-500" />
-                        Layanan bergaransi, tenaga kerja terlatih & ramah
+                        {s.category === "tennis"
+                          ? "Pelatih profesional, jadwal & lapangan fleksibel"
+                          : "Layanan bergaransi, tenaga kerja terlatih & ramah"}
                       </p>
                       <a
                         href="#pesan"
@@ -183,36 +255,44 @@ export function Services() {
               );
             }
 
-            // Vertical Card (3 cards per row)
+            // Vertical Card
             return (
               <motion.div
                 key={s.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-slate-300"
+                className={cn(
+                  "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-slate-300",
+                  verticalColSpan
+                )}
               >
                 <div>
                   {/* Image banner with category badge */}
-                  <div className="relative mb-5 h-48 w-full overflow-hidden rounded-2xl bg-slate-100">
+                  <div className="relative mb-5 h-52 w-full overflow-hidden rounded-2xl bg-slate-100">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={s.image || "/services/home.jpg"}
                       alt={s.name}
                       loading="lazy"
-                      className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="size-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                     />
                     <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
                       <Icon className="size-3.5 text-teal-400" />
-                      {s.category === "kebersihan" ? "Jasa Kebersihan" : "Jasa Teknisi"}
+                      {getCategoryLabel(s.category)}
                     </span>
+                    {hasPromo && (
+                      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-md">
+                        <Tag className="size-3" /> Promo
+                      </span>
+                    )}
                   </div>
 
                   {/* Header Row */}
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-xl font-black tracking-tight text-slate-900 leading-snug">{s.name}</h3>
                     <Link
-                      href={`/layanan/${s.id}`}
+                      href={detailHref}
                       className="inline-flex items-center gap-1 text-xs font-bold text-teal-600 hover:text-teal-700 hover:underline shrink-0 pt-0.5"
                     >
                       Detail →
@@ -222,20 +302,59 @@ export function Services() {
 
                   {/* Price Tiers List */}
                   <div className="mt-5 space-y-2.5 border-t border-slate-100 pt-4">
-                    {s.tiers.map((t) => (
-                      <div key={t.label} className="flex items-center justify-between text-sm py-0.5">
-                        <div className="flex items-center gap-2 font-medium text-slate-700">
-                          <Check className="size-4 shrink-0 text-teal-500 stroke-[2.5]" />
-                          <span>{t.label}</span>
-                          {t.popular && (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                              ⭐ Populer
-                            </span>
+                    {s.tiers.map((t) => {
+                      const discountBadge = getDiscountLabel(t);
+                      return (
+                        <div
+                          key={t.label}
+                          className={cn(
+                            "flex items-center justify-between gap-2 rounded-xl transition-all",
+                            discountBadge
+                              ? "border border-emerald-200/90 bg-gradient-to-r from-emerald-50/70 via-white to-teal-50/40 px-3 py-2"
+                              : "py-1"
                           )}
+                        >
+                          <div className="space-y-0.5">
+                            <div className="flex flex-wrap items-center gap-2 font-medium text-slate-700 text-sm">
+                              <Check className="size-4 shrink-0 text-teal-500 stroke-[2.5]" />
+                              <span>{t.label}</span>
+                            </div>
+                            {(t.popular || discountBadge) && (
+                              <div className="flex flex-wrap items-center gap-1.5 pl-6">
+                                {discountBadge && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 border border-rose-200 px-2 py-0.5 text-[10px] font-extrabold text-rose-600">
+                                    🔥 {discountBadge}
+                                  </span>
+                                )}
+                                {t.popular && (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                                    ⭐ Populer
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="ml-auto text-right shrink-0">
+                            {discountBadge && t.originalPrice && (
+                              <span className="block text-[11px] font-medium text-slate-400">
+                                {formatNormalPrice(t.originalPrice)}
+                              </span>
+                            )}
+                            <span
+                              className={cn(
+                                "font-black tracking-tight",
+                                discountBadge
+                                  ? "text-base text-emerald-700"
+                                  : "text-sm sm:text-base text-slate-900"
+                              )}
+                            >
+                              {t.price}
+                            </span>
+                          </div>
                         </div>
-                        <span className="font-extrabold text-slate-900 text-sm sm:text-base">{t.price}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 

@@ -4,12 +4,49 @@ export const WHATSAPP_DISPLAY = "0821-2143-7901";
 export type PriceTier = {
   label: string;
   price: string;
+  originalPrice?: string;
+  discountBadge?: string;
   popular?: boolean;
 };
 
+/**
+ * Menghitung persentase diskon secara otomatis jika originalPrice & price berisi angka Rupiah,
+ * atau mengembalikan discountBadge kustom bila diisi.
+ */
+export function getDiscountLabel(tier: PriceTier): string | null {
+  if (!tier.originalPrice || !tier.originalPrice.trim()) return null;
+  if (tier.discountBadge && tier.discountBadge.trim()) return tier.discountBadge.trim();
+
+  const parseNum = (str: string) => {
+    const digits = str.replace(/[^0-9]/g, "");
+    return digits ? parseInt(digits, 10) : NaN;
+  };
+
+  const orig = parseNum(tier.originalPrice);
+  const curr = parseNum(tier.price);
+
+  if (!isNaN(orig) && !isNaN(curr) && orig > curr && orig > 0) {
+    const pct = Math.round(((orig - curr) / orig) * 100);
+    if (pct > 0 && pct < 100) {
+      return `Hemat ${pct}%`;
+    }
+  }
+
+  return "Promo";
+}
+
+export function formatNormalPrice(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  if (/^rp\.?\s*/i.test(trimmed)) {
+    return trimmed.replace(/^rp\.?\s*/i, "Rp. ");
+  }
+  return `Rp. ${trimmed}`;
+}
+
 export type Service = {
   id: string;
-  category: "kebersihan" | "teknisi";
+  category: "kebersihan" | "teknisi" | "tennis";
   name: string;
   desc: string;
   icon: string; // lucide icon name
@@ -34,8 +71,8 @@ export const services: Service[] = [
     image: "/services/home.jpg",
     desc: "Membersihkan rumah secara menyeluruh (ruang tamu, kamar, dapur, kamar mandi, dll).",
     tiers: [
-      { label: "Minimum 3 Jam", price: "Rp 150.000" },
-      { label: "Tambah Jam", price: "Rp 50.000/jam", popular: true },
+      { label: "Minimum 3 Jam", price: "Rp 150.000", originalPrice: "Rp 185.000" },
+      { label: "Tambah Jam", price: "Rp 50.000/jam", originalPrice: "Rp 65.000/jam", popular: true },
     ],
   },
   {
@@ -71,7 +108,7 @@ export const services: Service[] = [
     desc: "Filter, evaporator, dan bagian dalam AC lebih bersih dan sehat.",
     tiers: [
       { label: "1 AC", price: "Rp 100.000" },
-      { label: "> 1 AC", price: "Rp 80.000/AC", popular: true },
+      { label: "> 1 AC", price: "Rp 80.000/AC", originalPrice: "Rp 100.000/AC", popular: true },
     ],
   },
   {
@@ -144,7 +181,7 @@ export const services: Service[] = [
     image: "/services/ac_clean.jpg",
     desc: "Cuci, perawatan, dan perbaikan AC (split & standing).",
     tiers: [
-      { label: "1/2 PK - 1 PK", price: "Rp 150.000" },
+      { label: "1/2 PK - 1 PK", price: "Rp 150.000", originalPrice: "Rp 180.000" },
       { label: "2 PK", price: "Rp 200.000", popular: true },
     ],
   },
@@ -228,6 +265,44 @@ export const services: Service[] = [
     desc: "Kipas angin, TV, dll.",
     tiers: [
       { label: "Mulai", price: "Rp 100.000", popular: true },
+    ],
+  },
+
+  // TENNIS COACHING (Private · Group · Kids & Junior)
+  {
+    id: "tennis-private",
+    category: "tennis",
+    name: "Private Tennis Coaching",
+    icon: "Trophy",
+    image: "/tennis.jpg",
+    desc: "Sesi intensif 1-on-1 yang didedikasikan penuh untuk perkembangan teknik, koreksi stroke, dan biomekanik pukulan Anda.",
+    tiers: [
+      { label: "Personal (1-on-1)", price: "Via WhatsApp", popular: true },
+      { label: "Semi-Private (2 Orang)", price: "Via WhatsApp" },
+    ],
+  },
+  {
+    id: "tennis-group",
+    category: "tennis",
+    name: "Group Class Tennis",
+    icon: "Users",
+    image: "/services/tennis_group.jpg",
+    desc: "Program latihan grup (3 - 4 peserta) dengan modul kurikulum terstruktur. Cocok untuk olahraga rutin sambil networking.",
+    tiers: [
+      { label: "Grup 3 - 4 Peserta", price: "Via WhatsApp", popular: true },
+      { label: "Corporate / Komunitas", price: "Via WhatsApp" },
+    ],
+  },
+  {
+    id: "tennis-junior",
+    category: "tennis",
+    name: "Kids & Junior Development",
+    icon: "Sparkles",
+    image: "/services/tennis_junior.jpg",
+    desc: "Metode khusus anak usia 5 - 14 tahun dengan pendekatan fun learning, koordinasi motorik, serta pondasi teknik yang aman.",
+    tiers: [
+      { label: "Usia 5 - 14 Tahun", price: "Via WhatsApp", popular: true },
+      { label: "Bola & Raket Pemula", price: "Disediakan" },
     ],
   },
 ];
