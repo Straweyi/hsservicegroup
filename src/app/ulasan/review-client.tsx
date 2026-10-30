@@ -104,13 +104,10 @@ export function ReviewClient() {
 
     setSubmitting(true);
     try {
-      const finalText = selectedTags.length
-        ? `${text.trim()}\n\n${selectedTags.map((t) => `✓ ${t}`).join("  ")}`
-        : text.trim();
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, name: name.trim(), location: location.trim(), rating, text: finalText.slice(0, 600), website }),
+        body: JSON.stringify({ token, name: name.trim(), location: location.trim(), rating, text: text.trim(), tags: selectedTags, website }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -302,6 +299,18 @@ export function ReviewClient() {
                       {Array.from({ length: rating }).map((_, i) => (<Star key={i} className="size-4 fill-current" />))}
                     </div>
                     <p className={`mt-4 break-words text-sm leading-relaxed ${text.trim() ? "text-slate-800" : "italic text-slate-400"}`}>“{text.trim() || "Ulasan Anda akan tampil di sini saat Anda mengetik..."}”</p>
+                    {selectedTags.length > 0 && (
+                      <div className="mt-5 border-t border-dashed border-slate-200 pt-4">
+                        <p className="mb-2.5 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Yang paling disukai</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedTags.map((tag) => (
+                            <span key={tag} className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/70 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+                              <Sparkles className="size-3 text-emerald-600" />{tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className="mt-6 flex items-center gap-3 border-t border-slate-100 pt-4">
                       <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-gradient font-bold text-white shadow-sm">{name.trim()[0]?.toUpperCase() || "A"}</span>
                       <div className="min-w-0">

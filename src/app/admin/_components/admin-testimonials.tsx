@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { AdminReviewLinks } from "./admin-review-links";
 import { supabase } from "@/lib/supabase";
-import { getDefaultTestimonialRows, type TestimonialRow } from "@/lib/cms-store";
+import { getDefaultTestimonialRows, getReviewParts, type TestimonialRow } from "@/lib/cms-store";
 import { invalidateCmsCache } from "@/lib/use-cms";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -350,7 +350,19 @@ export function AdminTestimonials({ supabaseAuthed }: AdminTestimonialsProps) {
                 </div>
 
                 <Quote className="size-6 text-teal-100 mb-2" />
-                <p className="text-sm text-slate-700 leading-relaxed break-words">“{row.text}”</p>
+                <p className="text-sm text-slate-700 leading-relaxed break-words whitespace-pre-line">“{getReviewParts(row).body}”</p>
+                {getReviewParts(row).tags.length > 0 && (
+                  <div className="mt-3 rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-2.5">
+                    <p className="mb-1.5 text-[9px] font-extrabold uppercase tracking-widest text-emerald-700">Yang paling disukai</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {getReviewParts(row).tags.map((tag) => (
+                        <span key={tag} className="rounded-lg border border-emerald-500/50 bg-white px-2 py-0.5 text-[11px] font-semibold text-emerald-900">
+                          ✓ {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-5 flex items-center gap-3 pt-4 border-t border-slate-100 min-w-0">
                   <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-gradient font-bold text-white">

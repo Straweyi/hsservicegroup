@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
     location?: string;
     rating?: number;
     text?: string;
+    tags?: string[];
     website?: string;
   };
   try {
@@ -136,7 +137,11 @@ export async function POST(req: NextRequest) {
 
   const role = [consumed.service_name, location].filter(Boolean).join(" · ").slice(0, 100);
 
-  const { error } = await client.from("testimonials").insert({
+  const tags = Array.isArray(body.tags)
+    ? body.tags.map((t) => String(t).trim().slice(0, 60)).filter(Boolean).slice(0, 6)
+    : [];
+
+  const row = {
     id: `rev-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     name,
     role: role || "Pelanggan HS Support",
@@ -144,7 +149,16 @@ export async function POST(req: NextRequest) {
     rating,
     sort_order: 100,
     is_active: false, // tetap menunggu persetujuan Admin
-  });
+  };
+
+  let { error } = await client.from("testimonials").insert({ ...row, tags });
+
+  if (error && tags.length > 0) {
+    // Kolom `tags` belum dimigrasikan: simpan kesan singkat di akhir teks (tetap terpisah saat ditampilkan)
+    ({ error } = await client
+      .from("testimonials")
+      .insert({ ...row, text: `${text}\n\n${tags.map((t) => `✓ ${t}`).join("  ")}` }));
+  }
 
   if (error) {
     // Kembalikan token agar pelanggan bisa mencoba lagi

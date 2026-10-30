@@ -2,9 +2,10 @@
 
 import {
   ClipboardList, CalendarCheck, SprayCan, SmilePlus, Star, Quote,
-  UserCheck, PackageCheck, BadgeDollarSign, AlarmClockCheck, CalendarClock, Camera, MessageCircle, ArrowRight, ShieldCheck, HelpCircle,
+  UserCheck, PackageCheck, BadgeDollarSign, AlarmClockCheck, CalendarClock, Camera, MessageCircle, ArrowRight, ShieldCheck, HelpCircle, Sparkles, BadgeCheck, Check,
 } from "lucide-react";
 import { Reveal } from "@/components/reveal";
+import { getReviewParts } from "@/lib/cms-store";
 import { useTestimonials, useFaqs, useSiteSettings } from "@/lib/use-cms";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
@@ -66,29 +67,72 @@ export function Testimonials() {
         <p className="text-sm font-semibold uppercase tracking-widest text-brand-600">Testimoni</p>
         <h2 className="mt-3 text-3xl font-bold sm:text-5xl">Dipercaya pelanggan kami</h2>
       </Reveal>
-      <div className="mt-12 grid gap-6 md:grid-cols-3">
-        {testimonials.map((t, i) => (
-          <Reveal key={t.id} delay={i * 0.08} className="relative flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm transition hover:shadow-md">
-            <div>
-              <Quote className="absolute right-6 top-6 size-8 text-brand-100" />
-              <div className="flex gap-0.5 text-amber-400">
-                {Array.from({ length: t.rating || 5 }).map((_, k) => (
-                  <Star key={k} className="size-4 fill-current" />
-                ))}
+      <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {testimonials.map((t, i) => {
+          const { body, tags } = getReviewParts(t);
+          const rating = t.rating || 5;
+          return (
+            <Reveal
+              key={t.id}
+              delay={i * 0.08}
+              className="group relative flex flex-col overflow-hidden rounded-[2rem] border border-slate-200/90 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-900/5"
+            >
+              <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-emerald-100/40 blur-2xl transition group-hover:bg-emerald-100/70" />
+
+              {/* Ulasan (free text) */}
+              <div className="relative flex-1">
+                <Quote className="absolute right-0 top-0 size-8 text-emerald-100" />
+                <div className="flex items-center gap-2.5">
+                  <div className="flex gap-0.5 text-amber-400">
+                    {Array.from({ length: 5 }).map((_, k) => (
+                      <Star key={k} className={`size-4 ${k < rating ? "fill-current" : "fill-slate-100 text-slate-200"}`} />
+                    ))}
+                  </div>
+                  <span className="rounded-full border border-amber-200/70 bg-amber-50 px-2 py-0.5 text-[10px] font-extrabold text-amber-800">
+                    {rating}.0
+                  </span>
+                </div>
+                <p className="mt-4 whitespace-pre-line break-words text-[15px] leading-relaxed text-slate-800">“{body}”</p>
               </div>
-              <p className="mt-4 text-foreground/80">“{t.text}”</p>
-            </div>
-            <div className="mt-6 flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-full bg-brand-gradient font-bold text-white">
-                {t.name[0]?.toUpperCase() || "P"}
-              </span>
-              <div>
-                <p className="text-sm font-bold">{t.name}</p>
-                <p className="text-xs text-muted-foreground">{t.role}</p>
+
+              {/* Identitas */}
+              <div className="relative mt-6 flex items-center gap-3 border-t border-slate-100 pt-5">
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-brand-gradient font-bold text-white shadow-sm ring-4 ring-emerald-50">
+                  {t.name[0]?.toUpperCase() || "P"}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-slate-900">{t.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{t.role}</p>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50/70 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                  <BadgeCheck className="size-3" /> Terverifikasi
+                </span>
               </div>
-            </div>
-          </Reveal>
-        ))}
+
+              {/* Yang paling disukai — terpisah dari ulasan, di bagian bawah kartu */}
+              {tags.length > 0 && (
+                <div className="relative mt-5 rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/40 p-4">
+                  <p className="mb-3 flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-700">
+                    <Sparkles className="size-3.5" /> Yang paling disukai
+                  </p>
+                  <ul className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <li
+                        key={tag}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/60 bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-900 shadow-2xs"
+                      >
+                        <span className="grid size-4 place-items-center rounded-full bg-emerald-500 text-white">
+                          <Check className="size-2.5 stroke-[3]" />
+                        </span>
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </Reveal>
+          );
+        })}
       </div>
     </section>
   );

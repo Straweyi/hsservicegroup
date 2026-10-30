@@ -13,6 +13,7 @@ export type TestimonialRow = {
   role: string;
   text: string;
   rating: number;
+  tags?: string[] | null;
   sort_order: number;
   is_active: boolean;
   created_at?: string;
@@ -137,3 +138,30 @@ export async function fetchSiteSettingsServer(): Promise<SiteSettingsRow> {
   return DEFAULT_SITE_SETTINGS;
 }
 
+
+/**
+ * Memisahkan isi ulasan dari "kesan singkat" (pilihan "Apa yang paling Anda sukai?")
+ * yang disimpan di akhir teks dengan penanda "✓". Kompatibel dengan ulasan lama.
+ */
+export function splitReviewText(raw: string): { body: string; tags: string[] } {
+  const m = raw.match(/[✓✔☑]/);
+  if (!m || m.index === undefined) return { body: raw.trim(), tags: [] };
+  const body = raw.slice(0, m.index).trim();
+  const tags = raw
+    .slice(m.index)
+    .split(/[✓✔☑]/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+  return body ? { body, tags } : { body: raw.replace(/[✓✔☑]/g, "").trim(), tags: [] };
+}
+
+/** Isi ulasan + kesan singkat: memakai kolom `tags` bila ada, jika tidak, urai dari ulasan lama. */
+export function getReviewParts(row: { text: string; tags?: string[] | null }): {
+  body: string;
+  tags: string[];
+} {
+  if (Array.isArray(row.tags) && row.tags.length > 0) {
+    return { body: row.text.trim(), tags: row.tags };
+  }
+  return splitReviewText(row.text);
+}

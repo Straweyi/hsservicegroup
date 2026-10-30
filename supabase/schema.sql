@@ -146,6 +146,8 @@ create table if not exists public.testimonials (
   updated_at timestamptz not null default now()
 );
 
+alter table public.testimonials add column if not exists tags jsonb not null default '[]'::jsonb;
+
 drop trigger if exists trg_testimonials_updated_at on public.testimonials;
 create trigger trg_testimonials_updated_at
 before update on public.testimonials
