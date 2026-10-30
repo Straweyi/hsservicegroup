@@ -15,7 +15,9 @@ import {
   X,
   Check,
   Database,
+  Link2,
 } from "lucide-react";
+import { AdminReviewLinks } from "./admin-review-links";
 import { supabase } from "@/lib/supabase";
 import { getDefaultTestimonialRows, type TestimonialRow } from "@/lib/cms-store";
 import { invalidateCmsCache } from "@/lib/use-cms";
@@ -52,11 +54,21 @@ export function AdminTestimonials({ supabaseAuthed }: AdminTestimonialsProps) {
   const [rows, setRows] = useState<TestimonialRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "pending">("all");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<TestimonialForm>(EMPTY_FORM);
+
+  const pendingCount = rows.filter((r) => !r.is_active).length;
+  const filteredRows = rows.filter((r) => {
+    if (statusFilter === "active") return r.is_active;
+    if (statusFilter === "pending") return !r.is_active;
+    return true;
+  });
+
+  const [linksOpen, setLinksOpen] = useState(false);
 
   useEffect(() => {
     loadTestimonials();
@@ -216,31 +228,65 @@ export function AdminTestimonials({ supabaseAuthed }: AdminTestimonialsProps) {
   return (
     <div className="space-y-5 sm:space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
-        <div>
-          <h2 className="text-base sm:text-lg font-black text-slate-900">Kelola Testimoni Pelanggan</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Tambahkan ulasan dari pelanggan Kebersihan, Teknisi, maupun peserta Tennis Coaching.
-          </p>
+      <div className="flex flex-col gap-4 rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
+        <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-slate-900">Kelola Testimoni & Moderasi Ulasan</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Buat link ulasan pribadi (sekali pakai) untuk dikirim ke pelanggan setelah layanan selesai, lalu setujui ulasan yang masuk sebelum tayang.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setLinksOpen(true)}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/80 px-3.5 sm:px-4 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition shrink-0"
+            >
+              <Link2 className="size-3.5 shrink-0" />
+              <span>Buat Link Ulasan</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleSeed}
+              disabled={seeding}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 sm:px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shrink-0"
+            >
+              <RefreshCw className={`size-3.5 shrink-0 ${seeding ? "animate-spin" : ""}`} />
+              <span>Impor Default</span>
+            </button>
+            <button
+              type="button"
+              onClick={openCreate}
+              className="flex-1 sm:flex-initial inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-brand-gradient px-4 sm:px-5 text-xs font-bold text-white shadow-sm hover:brightness-105 transition shrink-0"
+            >
+              <Plus className="size-4 shrink-0" />
+              <span>Tambah Testimoni</span>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={handleSeed}
-            disabled={seeding}
-            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 sm:px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shrink-0"
-          >
-            <RefreshCw className={`size-3.5 shrink-0 ${seeding ? "animate-spin" : ""}`} />
-            <span>Impor Default</span>
-          </button>
-          <button
-            type="button"
-            onClick={openCreate}
-            className="flex-1 sm:flex-initial inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-brand-gradient px-4 sm:px-5 text-xs font-bold text-white shadow-sm hover:brightness-105 transition shrink-0"
-          >
-            <Plus className="size-4 shrink-0" />
-            <span>Tambah Testimoni</span>
-          </button>
+
+        {/* Filter Status Moderasi */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-100">
+          {[
+            { id: "all" as const, label: `Semua (${rows.length})` },
+            { id: "active" as const, label: `Tayang (${rows.length - pendingCount})` },
+            { id: "pending" as const, label: `Menunggu Moderasi / Sembunyi (${pendingCount})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                statusFilter === tab.id
+                  ? "bg-slate-900 text-white shadow-2xs"
+                  : tab.id === "pending" && pendingCount > 0
+                    ? "bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -276,11 +322,13 @@ export function AdminTestimonials({ supabaseAuthed }: AdminTestimonialsProps) {
         </div>
       ) : (
         <div className="grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-          {rows.map((row) => (
+          {filteredRows.map((row) => (
             <div
               key={row.id}
               className={`relative flex flex-col justify-between rounded-2xl sm:rounded-3xl border bg-white p-4 sm:p-6 shadow-sm transition ${
-                row.is_active ? "border-slate-200/90" : "border-slate-200 bg-slate-50 opacity-70"
+                row.is_active
+                  ? "border-slate-200/90"
+                  : "border-amber-200/90 bg-amber-50/20"
               }`}
             >
               <div>
@@ -294,10 +342,10 @@ export function AdminTestimonials({ supabaseAuthed }: AdminTestimonialsProps) {
                     className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold shrink-0 ${
                       row.is_active
                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-slate-200 text-slate-600"
+                        : "bg-amber-100 text-amber-800 border border-amber-200"
                     }`}
                   >
-                    {row.is_active ? "Aktif" : "Tersembunyi"}
+                    {row.is_active ? "Tayang" : "Menunggu Moderasi"}
                   </span>
                 </div>
 
@@ -315,32 +363,50 @@ export function AdminTestimonials({ supabaseAuthed }: AdminTestimonialsProps) {
                 </div>
               </div>
 
-              <div className="mt-4 sm:mt-5 pt-3 border-t border-slate-100 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => openEdit(row)}
-                  className="flex-1 h-10 sm:h-9 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3 text-xs font-bold text-white hover:bg-slate-800 transition"
-                >
-                  <Pencil className="size-3.5 shrink-0" /> Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleToggle(row)}
-                  className="grid size-10 sm:size-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
-                >
-                  {row.is_active ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(row)}
-                  className="grid size-10 sm:size-9 shrink-0 place-items-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
-                >
-                  <Trash2 className="size-4" />
-                </button>
+              <div className="mt-4 sm:mt-5 pt-3 border-t border-slate-100 space-y-2">
+                {!row.is_active && (
+                  <button
+                    type="button"
+                    onClick={() => handleToggle(row)}
+                    className="w-full h-9 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700 transition shadow-2xs"
+                  >
+                    <Check className="size-3.5 shrink-0" />
+                    <span>Setujui & Tampilkan</span>
+                  </button>
+                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(row)}
+                    className="flex-1 h-10 sm:h-9 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3 text-xs font-bold text-white hover:bg-slate-800 transition"
+                  >
+                    <Pencil className="size-3.5 shrink-0" /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggle(row)}
+                    title={row.is_active ? "Sembunyikan" : "Tampilkan"}
+                    className="grid size-10 sm:size-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                  >
+                    {row.is_active ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(row)}
+                    title="Hapus Ulasan"
+                    className="grid size-10 sm:size-9 shrink-0 place-items-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {linksOpen && (
+        <AdminReviewLinks supabaseAuthed={supabaseAuthed} onClose={() => setLinksOpen(false)} />
       )}
 
       {/* Modal */}

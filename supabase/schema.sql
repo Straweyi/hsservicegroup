@@ -157,6 +157,28 @@ drop policy if exists "Public can read testimonials" on public.testimonials;
 create policy "Public can read testimonials"
   on public.testimonials for select to anon, authenticated using (true);
 
+-- Ulasan TIDAK boleh dikirim langsung oleh publik; hanya lewat API server dengan token sekali pakai.
+drop policy if exists "Public can submit pending testimonials" on public.testimonials;
+
+-- Tabel Link Ulasan Sekali Pakai (review_links) — hanya bisa diakses Admin
+create table if not exists public.review_links (
+  token text primary key,
+  category text not null check (category in ('kebersihan', 'teknisi', 'tennis')),
+  service_name text not null,
+  customer_name text,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table public.review_links enable row level security;
+
+drop policy if exists "Admin manages review links" on public.review_links;
+create policy "Admin manages review links"
+  on public.review_links for all to authenticated
+  using ((auth.jwt() ->> 'email') = 'admin@hssg.com')
+  with check ((auth.jwt() ->> 'email') = 'admin@hssg.com');
+
 drop policy if exists "Authenticated admin can insert testimonials" on public.testimonials;
 create policy "Authenticated admin can insert testimonials"
   on public.testimonials for insert to authenticated
