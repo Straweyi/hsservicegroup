@@ -11,6 +11,7 @@ import {
 } from "@/lib/data";
 import { fetchAllServicesServer, fetchServiceByIdServer } from "@/lib/services-store";
 import { fetchSiteSettingsServer } from "@/lib/cms-store";
+import { buildServiceJsonLd, SERVICE_AREAS, SERVICE_AREA_TEXT } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -25,8 +26,22 @@ export async function generateMetadata({ params }: Props) {
   const service = await fetchServiceByIdServer(id);
   if (!service) return { title: "Layanan Tidak Ditemukan - Hs Support" };
   return {
-    title: `${service.name} - Hs Support Group`,
-    description: service.desc,
+    title: `${service.name} — Jakarta Selatan, Jakarta Barat & Tangerang`,
+    description: `${service.desc} Layanan ${service.name} profesional dari HS Support Group (HS Service Group) untuk area ${SERVICE_AREA_TEXT}.`,
+    keywords: [
+      service.name.toLowerCase(),
+      `jasa ${service.name.toLowerCase()}`,
+      "hs support group",
+      "hs service group",
+      ...SERVICE_AREAS.map((area) => `${service.name.toLowerCase()} ${area.toLowerCase()}`),
+    ],
+    alternates: { canonical: `/layanan/${service.id}` },
+    openGraph: {
+      title: `${service.name} | HS Support Group`,
+      description: `${service.desc} Melayani ${SERVICE_AREA_TEXT}.`,
+      url: `/layanan/${service.id}`,
+      images: [service.image || "/logo.png"],
+    },
   };
 }
 
@@ -64,6 +79,10 @@ async function ServiceDetailContent({ params }: Props) {
 
   return (
     <main className="pt-28 pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildServiceJsonLd(service)) }}
+      />
       {/* Breadcrumb & Navigation */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

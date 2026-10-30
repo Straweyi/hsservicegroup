@@ -44,6 +44,9 @@ export function Footer() {
               <p className="text-xs text-slate-600 leading-relaxed">
                 Solusi terpadu kebersihan, perawatan peralatan rumah tangga, dan pelatihan olahraga tenis profesional dengan standar prima.
               </p>
+              <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
+                <strong className="text-slate-700">Area Layanan:</strong> Jakarta Selatan · Jakarta Barat · Tangerang · Kab. Tangerang · Tangerang Selatan
+              </p>
             </div>
 
             {/* Col 2: HS Services */}

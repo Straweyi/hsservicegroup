@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import { AdminClient } from "./admin-client";
 
 export const metadata: Metadata = {
-  title: "Admin CMS — Kelola Layanan & Harga | HS Support Group",
-  description: "Dashboard CMS Admin HS Support Group untuk mengelola layanan, paket harga, foto, dan status layanan dengan Supabase.",
+  title: "Admin CMS — Kelola Layanan & Harga",
+  robots: { index: false, follow: false, nocache: true },
 };
 
 export default function AdminPage() {
   return <AdminClient />;
 }
-
