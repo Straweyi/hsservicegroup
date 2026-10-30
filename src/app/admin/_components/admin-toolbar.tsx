@@ -19,7 +19,7 @@ const CATEGORY_TABS: { id: CategoryFilter; label: string; shortLabel: string }[]
   { id: "all", label: "Semua Kategori", shortLabel: "Semua" },
   { id: "kebersihan", label: "Jasa Kebersihan", shortLabel: "Kebersihan" },
   { id: "teknisi", label: "Jasa Teknisi", shortLabel: "Teknisi" },
-  { id: "tennis", label: "Tennis", shortLabel: "Tennis" },
+  { id: "tennis", label: "Sport", shortLabel: "Sport" },
 ];
 
 export function AdminToolbar({

@@ -10,7 +10,7 @@ import {
   Settings,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { type ServiceRow } from "@/lib/services-store";
+import { mapRowToService, type ServiceRow } from "@/lib/services-store";
 import { invalidateServicesCache } from "@/lib/use-services";
 import { getDefaultRows, slugify } from "./_components/admin-constants";
 import { AdminLogin } from "./_components/admin-login";
@@ -28,11 +28,14 @@ const INITIAL_FORM_STATE: ServiceFormState = {
   idManual: false,
   category: "kebersihan",
   name: "",
+  subtitle: "",
+  badge: "",
   desc: "",
   icon: "Sparkles",
   image: "/services/home.jpg",
   sortOrder: 1,
   isActive: true,
+  features: [],
   tiers: [{ label: "Paket Standar", price: "Rp 150.000", originalPrice: "", discountBadge: "", popular: true }],
 };
 
@@ -210,7 +213,31 @@ export function AdminClient() {
     setSeeding(true);
     try {
       const { error } = await supabase.from("services").upsert(initialRows, { onConflict: "id" });
-      if (error) throw error;
+      if (error) {
+        // Fallback jika kolom subtitle/badge/features belum dimigrasikan di Supabase
+        const legacyRows = initialRows.map(({ subtitle, badge, features, tiers, ...rest }) => ({
+          ...rest,
+          tiers:
+            tiers.length > 0 && (subtitle || badge || (features && features.length > 0))
+              ? tiers.map((t, i) =>
+                  i === 0
+                    ? {
+                        ...t,
+                        _meta: {
+                          subtitle: subtitle ?? "",
+                          badge: badge ?? "",
+                          features: features ?? [],
+                        },
+                      }
+                    : t
+                )
+              : tiers,
+        }));
+        const { error: retryErr } = await supabase
+          .from("services")
+          .upsert(legacyRows, { onConflict: "id" });
+        if (retryErr) throw retryErr;
+      }
       invalidateServicesCache();
       toast.success("Berhasil mengimpor 20 layanan awal ke database Supabase!");
       await loadServices();
@@ -223,27 +250,39 @@ export function AdminClient() {
   }
 
   function openCreateModal() {
+    const targetCategory = filterCategory === "all" ? "kebersihan" : filterCategory;
     setEditingId(null);
     setForm({
       ...INITIAL_FORM_STATE,
-      category: filterCategory === "all" ? "kebersihan" : filterCategory,
+      category: targetCategory,
+      icon: targetCategory === "tennis" ? "Trophy" : "Sparkles",
+      image: targetCategory === "tennis" ? "/tennis.jpg" : "/services/home.jpg",
+      features: targetCategory === "tennis" ? [""] : [],
+      tiers:
+        targetCategory === "tennis"
+          ? [{ label: "Personal / Paket Utama", price: "Via WhatsApp", originalPrice: "", discountBadge: "", popular: true }]
+          : INITIAL_FORM_STATE.tiers,
       sortOrder: rows.length + 1,
     });
     setModalOpen(true);
   }
 
   function openEditModal(row: ServiceRow) {
+    const mapped = mapRowToService(row);
     setEditingId(row.id);
     setForm({
       id: row.id,
       idManual: true,
       category: row.category,
       name: row.name,
+      subtitle: mapped.subtitle ?? "",
+      badge: mapped.badge ?? "",
       desc: row.desc,
       icon: row.icon || "Sparkles",
       image: row.image || "/services/home.jpg",
       sortOrder: row.sort_order ?? 1,
       isActive: row.is_active ?? true,
+      features: mapped.features ? [...mapped.features] : [],
       tiers:
         Array.isArray(row.tiers) && row.tiers.length > 0
           ? row.tiers.map((t) => ({
@@ -319,13 +358,20 @@ export function AdminClient() {
       return;
     }
 
+    const cleanSubtitle = form.subtitle.trim();
+    const cleanBadge = form.badge.trim();
+    const validFeatures = form.features.map((f) => f.trim()).filter(Boolean);
+
     const payload: ServiceRow = {
       id: editingId ?? cleanId,
       category: form.category,
       name: form.name.trim(),
+      subtitle: cleanSubtitle,
+      badge: cleanBadge,
       desc: form.desc.trim(),
       icon: form.icon,
       image: form.image.trim() || "/services/home.jpg",
+      features: validFeatures,
       tiers: validTiers,
       sort_order: Number(form.sortOrder) || 1,
       is_active: form.isActive,
@@ -346,7 +392,35 @@ export function AdminClient() {
     setSaving(true);
     try {
       const { error } = await supabase.from("services").upsert(payload, { onConflict: "id" });
-      if (error) throw error;
+      if (error) {
+        // Fallback otomatis ke metadata JSONB di dalam tiers[0] jika kolom baru belum dijalankan di SQL Editor
+        const legacyPayload = {
+          id: payload.id,
+          category: payload.category,
+          name: payload.name,
+          desc: payload.desc,
+          icon: payload.icon,
+          image: payload.image,
+          tiers: validTiers.map((t, idx) =>
+            idx === 0
+              ? {
+                  ...t,
+                  _meta: {
+                    subtitle: cleanSubtitle,
+                    badge: cleanBadge,
+                    features: validFeatures,
+                  },
+                }
+              : t
+          ),
+          sort_order: payload.sort_order,
+          is_active: payload.is_active,
+        };
+        const { error: retryErr } = await supabase
+          .from("services")
+          .upsert(legacyPayload, { onConflict: "id" });
+        if (retryErr) throw retryErr;
+      }
 
       invalidateServicesCache();
       toast.success(editingId ? "Layanan berhasil diperbarui!" : "Layanan baru berhasil ditambahkan!");

@@ -40,7 +40,7 @@ export function AdminServiceCard({
                 ? "Kebersihan"
                 : row.category === "teknisi"
                 ? "Teknisi"
-                : "Tennis"}
+                : "Sport"}
             </span>
             <div className="flex items-center gap-1">
               {hasPromo && (

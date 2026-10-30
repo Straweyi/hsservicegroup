@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -19,57 +19,44 @@ import {
   ArrowRight,
   HelpCircle,
   Phone,
+  Home,
+  Building2,
+  DoorOpen,
+  Wind,
+  Wrench,
+  Fuel,
+  Droplets,
+  Flame,
+  Refrigerator,
+  Waves,
+  Plug,
+  type LucideIcon,
 } from "lucide-react";
 import { LinkButton } from "@/components/link-button";
+import { getDiscountLabel, formatNormalPrice } from "@/lib/data";
+import { useServices } from "@/lib/use-services";
 import { useSiteSettings } from "@/lib/use-cms";
 
-const PROGRAMS = [
-  {
-    id: "private",
-    title: "Private Coaching",
-    subtitle: "Personal,Group,Corporate",
-    badge: "Paling Populer",
-    popular: true,
-    desc: "Sesi intensif 1-on-1 yang didedikasikan penuh untuk perkembangan teknik, koreksi stroke, dan biomekanik pukulan Anda.",
-    features: [
-      "Fokus 100% pada perbaikan stroke & footwork",
-      "Koreksi realtime setiap pukulan",
-      "Disesuaikan dengan target & ritme belajar Anda",
-      "Latihan drill intensif + mini match",
-      "Cocok untuk pemula hingga pemain turnamen",
-    ],
-    defaultPriceNote: "Konsultasi jadwal & tarif via WhatsApp",
-  },
-  {
-    id: "group",
-    title: "Group Class",
-    subtitle: "3 - 4 Peserta",
-    desc: "Program latihan grup dengan modul kurikulum terstruktur. Sangat cocok bagi yang ingin berolahraga tenis rutin sambil networking.",
-    features: [
-      "Struktur materi sistematis setiap pertemuan",
-      "Drill dinamis: serve, volley, rally, dan game play",
-      "Suasana latihan interaktif dan seru",
-      "Memperluas relasi komunitas penggemar tenis",
-      "Sesi 1.5 - 2 jam per pertemuan",
-    ],
-    defaultPriceNote: "Konsultasi jadwal & tarif via WhatsApp",
-  },
-  {
-    id: "junior",
-    title: "Kids & Junior Development",
-    subtitle: "Usia 5 - 14 Tahun",
-    badge: "Fun & Berjenjang",
-    desc: "Metode khusus anak-anak dengan pendekatan fun learning, koordinasi motorik mata-tangan, serta penanaman pondasi teknik yang aman dan benar.",
-    features: [
-      "Metode bola bertahap (Red, Orange, Green ball)",
-      "Latihan kelincahan, refleks, dan koordinasi fisik",
-      "Membangun kedisiplinan dan rasa percaya diri",
-      "Pelatih sabar, ramah, dan berpengalaman dengan anak",
-      "Jadwal weekend atau sore hari",
-    ],
-    defaultPriceNote: "Konsultasi jadwal & tarif via WhatsApp",
-  },
-];
+const iconMap: Record<string, LucideIcon> = {
+  Home,
+  Building2,
+  DoorOpen,
+  Wind,
+  Wrench,
+  Fuel,
+  Droplets,
+  Flame,
+  Refrigerator,
+  Waves,
+  Plug,
+  Trophy,
+  User,
+  Users,
+  Target,
+  Zap,
+  Sparkles,
+  Award,
+};
 
 const CURRICULUM = [
   {
@@ -115,8 +102,21 @@ const FAQS = [
 
 export function TennisClient() {
   const settings = useSiteSettings();
+  const { services } = useServices();
+
+  const sportPrograms = useMemo(
+    () => services.filter((s) => s.category === "tennis"),
+    [services]
+  );
+
+  const bookingProgramOptions = useMemo(() => {
+    const names = sportPrograms.map((p) => p.name);
+    return Array.from(new Set([...names, "Sparring / Hitting Partner", "Konsultasi Program"]));
+  }, [sportPrograms]);
+
   // Booking Form State for direct WhatsApp redirection
-  const [selectedProgram, setSelectedProgram] = useState("Private Coaching");
+  const [selectedProgram, setSelectedProgram] = useState("");
+  const activeProgram = selectedProgram || bookingProgramOptions[0] || "Private Tennis Coaching";
   const [level, setLevel] = useState("Pemula (Mulai dari Nol)");
   const [preferredTime, setPreferredTime] = useState("Weekend Pagi (06.00 - 10.00)");
   const [locationPreference, setLocationPreference] = useState("");
@@ -126,7 +126,7 @@ export function TennisClient() {
     const text =
       `Halo Admin HS Tennis Coaching,\n\n` +
       `Saya ingin bertanya & memesan sesi latihan tenis:\n` +
-      `• Program: ${selectedProgram}\n` +
+      `• Program: ${activeProgram}\n` +
       `• Level Kemampuan: ${level}\n` +
       `• Preferensi Waktu: ${preferredTime}\n` +
       (locationPreference ? `• Lokasi/Area Lapangan: ${locationPreference}\n` : "") +
@@ -257,70 +257,135 @@ export function TennisClient() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {PROGRAMS.map((prog) => (
-              <div
-                key={prog.id}
-                className={`relative flex flex-col justify-between rounded-3xl border p-8 bg-white transition hover:shadow-xl ${prog.popular
-                  ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg"
-                  : "border-slate-200/90 shadow-sm hover:border-slate-300"
+            {sportPrograms.map((prog) => {
+              const IconComp =
+                prog.id === "tennis-private" && prog.icon === "Trophy"
+                  ? User
+                  : prog.id === "tennis-group" && prog.icon === "Users"
+                    ? Target
+                    : iconMap[prog.icon] ?? Trophy;
+              const badgeText = prog.badge?.trim() || "";
+              const isPopular = /populer|utama|unggulan/i.test(badgeText);
+              const subtitleText =
+                prog.subtitle?.trim() || prog.tiers.map((t) => t.label).join(", ");
+              const features = prog.features ?? [];
+              const hasExplicitPrice = prog.tiers.some(
+                (t) =>
+                  !/^(via whatsapp|disediakan|-)$/i.test(t.price.trim()) ||
+                  Boolean(getDiscountLabel(t))
+              );
+
+              return (
+                <div
+                  key={prog.id}
+                  className={`relative flex flex-col justify-between rounded-3xl border p-8 bg-white transition hover:shadow-xl ${
+                    isPopular
+                      ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg"
+                      : "border-slate-200/90 shadow-sm hover:border-slate-300"
                   }`}
-              >
-                {prog.badge && (
-                  <span
-                    className={`absolute -top-3.5 right-6 rounded-full px-3.5 py-1 text-xs font-black uppercase tracking-wider ${prog.popular
-                      ? "bg-emerald-600 text-white shadow-sm"
-                      : "bg-slate-900 text-white"
+                >
+                  {badgeText && (
+                    <span
+                      className={`absolute -top-3.5 right-6 rounded-full px-3.5 py-1 text-xs font-black uppercase tracking-wider ${
+                        isPopular
+                          ? "bg-emerald-600 text-white shadow-sm"
+                          : "bg-slate-900 text-white"
                       }`}
-                  >
-                    {prog.badge}
-                  </span>
-                )}
-
-                <div>
-                  <div className="flex items-center gap-3">
-                    <span className="grid size-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-700">
-                      {prog.id === "private" && <User className="size-6" />}
-                      {prog.id === "semi-private" && <Users className="size-6" />}
-                      {prog.id === "group" && <Target className="size-6" />}
-                      {prog.id === "junior" && <Sparkles className="size-6" />}
-                      {prog.id === "sparring" && <Zap className="size-6" />}
+                    >
+                      {badgeText}
                     </span>
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-900">{prog.title}</h3>
-                      <p className="text-xs font-semibold text-emerald-700">{prog.subtitle}</p>
+                  )}
+
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-emerald-700">
+                        <IconComp className="size-6" />
+                      </span>
+                      <div>
+                        <h3 className="text-xl font-bold text-slate-900">{prog.name}</h3>
+                        {subtitleText && (
+                          <p className="text-xs font-semibold text-emerald-700">{subtitleText}</p>
+                        )}
+                      </div>
                     </div>
+
+                    <p className="mt-5 text-sm text-slate-600 leading-relaxed">{prog.desc}</p>
+
+                    {features.length > 0 && (
+                      <div className="mt-6 border-t border-slate-100 pt-5">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                          Fasilitas & Keunggulan
+                        </p>
+                        <ul className="space-y-2.5">
+                          {features.map((f, idx) => (
+                            <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-700">
+                              <CheckCircle2 className="size-4 text-emerald-600 shrink-0 mt-0.5" />
+                              <span>{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
 
-                  <p className="mt-5 text-sm text-slate-600 leading-relaxed">{prog.desc}</p>
+                  <div className="mt-8 pt-6 border-t border-slate-100">
+                    {hasExplicitPrice ? (
+                      <div className="space-y-2 mb-4">
+                        {prog.tiers.map((tier, tIdx) => {
+                          const discountBadge = getDiscountLabel(tier);
+                          return (
+                            <div
+                              key={tIdx}
+                              className={`flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs ${
+                                discountBadge
+                                  ? "border-emerald-200 bg-emerald-50/50"
+                                  : "border-slate-100 bg-slate-50/70"
+                              }`}
+                            >
+                              <div className="space-y-0.5 min-w-0">
+                                <p className="font-semibold text-slate-700 truncate">{tier.label}</p>
+                                {discountBadge && (
+                                  <span className="inline-block rounded-full bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-extrabold text-rose-600">
+                                    🔥 {discountBadge}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="ml-auto text-right shrink-0">
+                                {discountBadge && tier.originalPrice && (
+                                  <span className="block text-[10px] font-medium text-slate-400">
+                                    {formatNormalPrice(tier.originalPrice)}
+                                  </span>
+                                )}
+                                <span
+                                  className={`font-black ${
+                                    discountBadge ? "text-emerald-700" : "text-slate-900"
+                                  }`}
+                                >
+                                  {tier.price}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500 mb-3">
+                        Konsultasi jadwal & tarif via WhatsApp
+                      </p>
+                    )}
 
-                  <div className="mt-6 border-t border-slate-100 pt-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-                      Fasilitas & Keunggulan
-                    </p>
-                    <ul className="space-y-2.5">
-                      {prog.features.map((f, idx) => (
-                        <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-700">
-                          <CheckCircle2 className="size-4 text-emerald-600 shrink-0 mt-0.5" />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <LinkButton
+                      href={getQuickProgramWa(prog.name)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full h-11 justify-center rounded-full bg-slate-900 text-white font-bold text-sm transition hover:bg-emerald-600 gap-2 shadow-sm"
+                    >
+                      <MessageCircle className="size-4 text-emerald-400" /> Tanya Program Ini
+                    </LinkButton>
                   </div>
                 </div>
-
-                <div className="mt-8 pt-6 border-t border-slate-100">
-                  <p className="text-xs text-slate-500 mb-3">{prog.defaultPriceNote}</p>
-                  <LinkButton
-                    href={getQuickProgramWa(prog.title)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full h-11 justify-center rounded-full bg-slate-900 text-white font-bold text-sm transition hover:bg-emerald-600 gap-2 shadow-sm"
-                  >
-                    <MessageCircle className="size-4 text-emerald-400" /> Tanya Program Ini
-                  </LinkButton>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -354,22 +419,16 @@ export function TennisClient() {
                   1. Pilih Program Latihan
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                  {[
-                    "Private Coaching (1-on-1)",
-                    "Semi-Private (2 Peserta)",
-                    "Group Clinic (3-4 Orang)",
-                    "Kids & Junior Academy",
-                    "Sparring / Hitting Partner",
-                    "Konsultasi Program",
-                  ].map((item) => (
+                  {bookingProgramOptions.map((item) => (
                     <button
                       type="button"
                       key={item}
                       onClick={() => setSelectedProgram(item)}
-                      className={`text-left px-4 py-3 rounded-2xl border text-xs font-semibold transition ${selectedProgram === item
-                        ? "border-emerald-600 bg-emerald-50/70 text-emerald-900 font-bold ring-1 ring-emerald-600"
-                        : "border-slate-200 hover:border-slate-300 text-slate-700 bg-white"
-                        }`}
+                      className={`text-left px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
+                        activeProgram === item
+                          ? "border-emerald-600 bg-emerald-50/70 text-emerald-900 font-bold ring-1 ring-emerald-600"
+                          : "border-slate-200 hover:border-slate-300 text-slate-700 bg-white"
+                      }`}
                     >
                       {item}
                     </button>

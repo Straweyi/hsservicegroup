@@ -1,12 +1,19 @@
 export const WHATSAPP_NUMBER = "6282121437901";
 export const WHATSAPP_DISPLAY = "0821-2143-7901";
 
+export type PriceTierMeta = {
+  subtitle?: string;
+  badge?: string;
+  features?: string[];
+};
+
 export type PriceTier = {
   label: string;
   price: string;
   originalPrice?: string;
   discountBadge?: string;
   popular?: boolean;
+  _meta?: PriceTierMeta;
 };
 
 /**
@@ -48,6 +55,7 @@ export type Service = {
   id: string;
   category: "kebersihan" | "teknisi" | "tennis";
   name: string;
+  subtitle?: string;
   desc: string;
   icon: string; // lucide icon name
   tiers: PriceTier[];
@@ -268,14 +276,23 @@ export const services: Service[] = [
     ],
   },
 
-  // TENNIS COACHING (Private · Group · Kids & Junior)
+  // SPORT / TENNIS COACHING (Private · Group · Kids & Junior)
   {
     id: "tennis-private",
     category: "tennis",
     name: "Private Tennis Coaching",
-    icon: "Trophy",
+    subtitle: "Personal, Group, Corporate",
+    badge: "Paling Populer",
+    icon: "User",
     image: "/tennis.jpg",
     desc: "Sesi intensif 1-on-1 yang didedikasikan penuh untuk perkembangan teknik, koreksi stroke, dan biomekanik pukulan Anda.",
+    features: [
+      "Fokus 100% pada perbaikan stroke & footwork",
+      "Koreksi realtime setiap pukulan",
+      "Disesuaikan dengan target & ritme belajar Anda",
+      "Latihan drill intensif + mini match",
+      "Cocok untuk pemula hingga pemain turnamen",
+    ],
     tiers: [
       { label: "Personal (1-on-1)", price: "Via WhatsApp", popular: true },
       { label: "Semi-Private (2 Orang)", price: "Via WhatsApp" },
@@ -285,9 +302,17 @@ export const services: Service[] = [
     id: "tennis-group",
     category: "tennis",
     name: "Group Class Tennis",
-    icon: "Users",
+    subtitle: "3 - 4 Peserta",
+    icon: "Target",
     image: "/services/tennis_group.jpg",
-    desc: "Program latihan grup (3 - 4 peserta) dengan modul kurikulum terstruktur. Cocok untuk olahraga rutin sambil networking.",
+    desc: "Program latihan grup dengan modul kurikulum terstruktur. Sangat cocok bagi yang ingin berolahraga tenis rutin sambil networking.",
+    features: [
+      "Struktur materi sistematis setiap pertemuan",
+      "Drill dinamis: serve, volley, rally, dan game play",
+      "Suasana latihan interaktif dan seru",
+      "Memperluas relasi komunitas penggemar tenis",
+      "Sesi 1.5 - 2 jam per pertemuan",
+    ],
     tiers: [
       { label: "Grup 3 - 4 Peserta", price: "Via WhatsApp", popular: true },
       { label: "Corporate / Komunitas", price: "Via WhatsApp" },
@@ -297,9 +322,18 @@ export const services: Service[] = [
     id: "tennis-junior",
     category: "tennis",
     name: "Kids & Junior Development",
+    subtitle: "Usia 5 - 14 Tahun",
+    badge: "Fun & Berjenjang",
     icon: "Sparkles",
     image: "/services/tennis_junior.jpg",
-    desc: "Metode khusus anak usia 5 - 14 tahun dengan pendekatan fun learning, koordinasi motorik, serta pondasi teknik yang aman.",
+    desc: "Metode khusus anak-anak dengan pendekatan fun learning, koordinasi motorik mata-tangan, serta penanaman pondasi teknik yang aman dan benar.",
+    features: [
+      "Metode bola bertahap (Red, Orange, Green ball)",
+      "Latihan kelincahan, refleks, dan koordinasi fisik",
+      "Membangun kedisiplinan dan rasa percaya diri",
+      "Pelatih sabar, ramah, dan berpengalaman dengan anak",
+      "Jadwal weekend atau sore hari",
+    ],
     tiers: [
       { label: "Usia 5 - 14 Tahun", price: "Via WhatsApp", popular: true },
       { label: "Bola & Raket Pemula", price: "Disediakan" },

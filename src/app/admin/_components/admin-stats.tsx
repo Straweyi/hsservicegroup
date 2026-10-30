@@ -39,7 +39,7 @@ export function AdminStats({ stats, isEmpty, seeding, onSeed }: AdminStatsProps)
           <p className="mt-1 text-xl sm:text-2xl font-black text-sky-700">{stats.teknisi}</p>
         </div>
         <div className="col-span-2 sm:col-span-2 lg:col-span-1 rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-sm">
-          <p className="text-[11px] sm:text-xs font-semibold text-slate-500">Tennis Coaching</p>
+          <p className="text-[11px] sm:text-xs font-semibold text-slate-500">Sport</p>
           <p className="mt-1 text-xl sm:text-2xl font-black text-amber-600">{stats.tennis}</p>
         </div>
       </div>

@@ -135,7 +135,7 @@ export function Booking() {
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </optgroup>
-                <optgroup label="Tennis">
+                <optgroup label="Sport">
                   {services.filter((s) => s.category === "tennis").map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}

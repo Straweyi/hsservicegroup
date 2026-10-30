@@ -6,9 +6,12 @@ export type ServiceRow = {
   id: string;
   category: "kebersihan" | "teknisi" | "tennis";
   name: string;
+  subtitle?: string | null;
+  badge?: string | null;
   desc: string;
   icon: string;
   image: string;
+  features?: string[] | null;
   tiers: PriceTier[];
   sort_order: number;
   is_active: boolean;
@@ -17,14 +20,42 @@ export type ServiceRow = {
 };
 
 export function mapRowToService(row: ServiceRow): Service {
+  const defaultMatch = defaultServices.find((d) => d.id === row.id);
+  const tiers = Array.isArray(row.tiers) ? row.tiers : [];
+  const tierMeta = tiers[0]?._meta;
+
+  const resolvedSubtitle =
+    row.subtitle !== undefined && row.subtitle !== null
+      ? row.subtitle
+      : tierMeta?.subtitle !== undefined
+        ? tierMeta.subtitle
+        : defaultMatch?.subtitle;
+
+  const resolvedBadge =
+    row.badge !== undefined && row.badge !== null
+      ? row.badge
+      : tierMeta?.badge !== undefined
+        ? tierMeta.badge
+        : defaultMatch?.badge;
+
+  const resolvedFeatures =
+    Array.isArray(row.features)
+      ? row.features
+      : Array.isArray(tierMeta?.features)
+        ? tierMeta.features
+        : defaultMatch?.features;
+
   return {
     id: row.id,
     category: row.category,
     name: row.name,
+    subtitle: resolvedSubtitle,
+    badge: resolvedBadge,
     desc: row.desc,
     icon: row.icon || "Sparkles",
     image: row.image || "/services/home.jpg",
-    tiers: Array.isArray(row.tiers) ? row.tiers : [],
+    features: resolvedFeatures,
+    tiers,
   };
 }
 

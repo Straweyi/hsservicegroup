@@ -12,8 +12,10 @@ import {
   Waves,
   Plug,
   Trophy,
+  User,
   Users,
   Target,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { services as defaultServices } from "@/lib/data";
@@ -32,8 +34,10 @@ export const ICON_OPTIONS: { name: string; icon: LucideIcon }[] = [
   { name: "Waves", icon: Waves },
   { name: "Plug", icon: Plug },
   { name: "Trophy", icon: Trophy },
+  { name: "User", icon: User },
   { name: "Users", icon: Users },
   { name: "Target", icon: Target },
+  { name: "Zap", icon: Zap },
   { name: "Sparkles", icon: Sparkles },
 ];
 
@@ -67,9 +71,12 @@ export function getDefaultRows(): ServiceRow[] {
     id: s.id,
     category: s.category,
     name: s.name,
+    subtitle: s.subtitle ?? null,
+    badge: s.badge ?? null,
     desc: s.desc,
     icon: s.icon,
     image: s.image || "/services/home.jpg",
+    features: s.features ?? null,
     tiers: s.tiers,
     sort_order: idx + 1,
     is_active: true,

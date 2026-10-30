@@ -59,7 +59,7 @@ async function ServiceDetailContent({ params }: Props) {
       ? "Kebersihan"
       : service.category === "teknisi"
         ? "Teknisi"
-        : "Tennis";
+        : "Sport";
   const hasPromo = service.tiers.some((t) => Boolean(getDiscountLabel(t)));
 
   return (

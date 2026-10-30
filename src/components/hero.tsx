@@ -23,7 +23,7 @@ export function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-700"
           >
             <span className="size-2 animate-pulse rounded-full bg-brand-500" />
-            Cleaning · Technician · Home Service
+            Cleaning · Technician · Home Service · Sport
           </motion.span>
 
           <motion.h1

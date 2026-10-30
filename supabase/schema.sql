@@ -88,15 +88,23 @@ create table if not exists public.services (
   id text primary key,
   category text not null check (category in ('kebersihan', 'teknisi', 'tennis')),
   name text not null,
+  subtitle text,
+  badge text,
   "desc" text not null,
   icon text not null default 'Sparkles',
   image text not null default '/services/home.jpg',
+  features jsonb,
   tiers jsonb not null default '[]'::jsonb,
   sort_order integer not null default 0,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Migrasi aman untuk tabel services yang sudah dibuat sebelumnya
+alter table public.services add column if not exists subtitle text;
+alter table public.services add column if not exists badge text;
+alter table public.services add column if not exists features jsonb;
 
 drop trigger if exists trg_services_updated_at on public.services;
 create trigger trg_services_updated_at

@@ -21,8 +21,10 @@ import {
   Waves,
   Plug,
   Trophy,
+  User,
   Users,
   Target,
+  Zap,
 } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { getDiscountLabel, formatNormalPrice, type Service } from "@/lib/data";
@@ -32,7 +34,7 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { id: "kebersihan", label: "Jasa Kebersihan", sub: "Rumah · Kantor · Apartemen · Kos" },
   { id: "teknisi", label: "Jasa Teknisi", sub: "AC · Listrik · Plumbing · Elektronik" },
-  { id: "tennis", label: "Tennis", sub: "Private Coaching · Group Class · Kids & Junior" },
+  { id: "tennis", label: "Sport", sub: "Private Coaching · Group Class · Kids & Junior" },
 ] as const;
 
 const iconMap: Record<string, LucideIcon> = {
@@ -48,8 +50,10 @@ const iconMap: Record<string, LucideIcon> = {
   Waves,
   Plug,
   Trophy,
+  User,
   Users,
   Target,
+  Zap,
   Sparkles,
 };
 

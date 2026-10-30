@@ -23,11 +23,14 @@ export type ServiceFormState = {
   idManual: boolean;
   category: "kebersihan" | "teknisi" | "tennis";
   name: string;
+  subtitle: string;
+  badge: string;
   desc: string;
   icon: string;
   image: string;
   sortOrder: number;
   isActive: boolean;
+  features: string[];
   tiers: PriceTier[];
 };
 
@@ -113,7 +116,7 @@ export function AdminServiceModal({
                 >
                   <option value="kebersihan">Jasa Kebersihan</option>
                   <option value="teknisi">Jasa Teknisi</option>
-                  <option value="tennis">Tennis Coaching</option>
+                  <option value="tennis">Sport</option>
                 </select>
               </div>
             </div>
@@ -175,6 +178,101 @@ export function AdminServiceModal({
                 onChange={(e) => onChange((prev) => ({ ...prev, desc: e.target.value }))}
                 placeholder="Jelaskan cakupan pekerjaan layanan ini secara singkat dan jelas..."
               />
+            </div>
+
+            {/* Subjudul, Badge & Fasilitas Program (Khusus Sport / Opsional Layanan) */}
+            <div className="space-y-4 rounded-2xl border border-emerald-200/80 bg-emerald-50/30 p-3.5 sm:p-4">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-800">
+                  Detail Kartu Program & Keunggulan {form.category === "tennis" ? "(Halaman Sport / Tennis)" : "(Opsional)"}
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Tampil otomatis pada kartu &ldquo;Pilihan Program Pelatihan&rdquo; di halaman HS Tennis Coaching.
+                </p>
+              </div>
+
+              <div className="grid gap-3.5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="f-subtitle">Subjudul / Target Peserta</Label>
+                  <Input
+                    id="f-subtitle"
+                    value={form.subtitle}
+                    onChange={(e) => onChange((prev) => ({ ...prev, subtitle: e.target.value }))}
+                    placeholder="Mis: Personal, Group, Corporate / Usia 5 - 14 Tahun"
+                    className="bg-white"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="f-badge">Badge Kartu (Opsional)</Label>
+                  <Input
+                    id="f-badge"
+                    value={form.badge}
+                    onChange={(e) => onChange((prev) => ({ ...prev, badge: e.target.value }))}
+                    placeholder="Mis: Paling Populer / Fun & Berjenjang"
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Editor Fasilitas & Keunggulan */}
+              <div className="space-y-2.5 pt-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <Label className="text-xs font-bold text-slate-800">
+                    Daftar Fasilitas & Keunggulan ({form.features.length} poin)
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onChange((prev) => ({
+                        ...prev,
+                        features: [...prev.features, ""],
+                      }))
+                    }
+                    className="inline-flex h-8 items-center justify-center gap-1 rounded-full bg-white border border-emerald-200 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-50 shrink-0"
+                  >
+                    <Plus className="size-3.5" /> Tambah Fasilitas
+                  </button>
+                </div>
+
+                {form.features.length > 0 ? (
+                  <div className="space-y-2">
+                    {form.features.map((feat, fIdx) => (
+                      <div key={fIdx} className="flex items-center gap-2">
+                        <Input
+                          value={feat}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            onChange((prev) => ({
+                              ...prev,
+                              features: prev.features.map((item, i) => (i === fIdx ? val : item)),
+                            }));
+                          }}
+                          placeholder={`Poin keunggulan ke-${fIdx + 1}...`}
+                          className="h-9 text-xs bg-white flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onChange((prev) => ({
+                              ...prev,
+                              features: prev.features.filter((_, i) => i !== fIdx),
+                            }))
+                          }
+                          aria-label="Hapus poin fasilitas"
+                          className="grid size-9 shrink-0 place-items-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-slate-400 italic">
+                    Belum ada poin fasilitas. Klik &ldquo;Tambah Fasilitas&rdquo; untuk menampilkan daftar keunggulan pada kartu program.
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Pilih Ikon */}
