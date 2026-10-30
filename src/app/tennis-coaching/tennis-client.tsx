@@ -278,7 +278,8 @@ export function TennisClient() {
               return (
                 <div
                   key={prog.id}
-                  className={`relative flex flex-col justify-between rounded-3xl border p-8 bg-white transition hover:shadow-xl ${
+                  id={`prog-${prog.id}`}
+                  className={`scroll-mt-28 relative flex flex-col justify-between rounded-3xl border p-8 bg-white transition hover:shadow-xl ${
                     isPopular
                       ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg"
                       : "border-slate-200/90 shadow-sm hover:border-slate-300"

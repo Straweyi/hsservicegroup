@@ -27,6 +27,7 @@ export function Navbar() {
 
   const kebersihanServices = services.filter((s) => s.category === "kebersihan");
   const teknisiServices = services.filter((s) => s.category === "teknisi");
+  const sportServices = services.filter((s) => s.category === "tennis");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -99,10 +100,10 @@ export function Navbar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.98 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 w-[540px]"
+                  className="absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 w-[760px] max-w-[calc(100vw-2rem)]"
                 >
                   <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-2xl ring-1 ring-black/5">
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-3 gap-6">
                       {/* Column 1: Jasa Kebersihan */}
                       <div>
                         <div className="mb-3 flex items-center justify-between border-b border-slate-100 pb-2">
@@ -150,22 +151,39 @@ export function Navbar() {
                           ))}
                         </ul>
                       </div>
+
+                      {/* Column 3: Sport */}
+                      <div>
+                        <div className="mb-3 flex items-center justify-between border-b border-slate-100 pb-2">
+                          <span className="text-xs font-black uppercase tracking-wider text-teal-700">
+                            Sport
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">{sportServices.length} Layanan</span>
+                        </div>
+                        <ul className="space-y-1">
+                          {sportServices.map((s) => (
+                            <li key={s.id}>
+                              <Link
+                                href={`/tennis-coaching#prog-${s.id}`}
+                                onClick={() => setDropdownOpen(false)}
+                                className="group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-brand-600"
+                              >
+                                <span className="truncate">{s.name}</span>
+                                <ArrowRight className="size-3.5 opacity-0 -translate-x-1 transition group-hover:opacity-100 group-hover:translate-x-0 text-brand-600 shrink-0" />
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
 
                     {/* Bottom Dropdown Footer */}
-                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                      <Link
-                        href="/tennis-coaching"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-1.5 font-bold text-emerald-700 hover:underline"
-                      >
-                        <span>🎾 Mau les tenis? HS Tennis Coaching</span>
-                        <ArrowRight className="size-3" />
-                      </Link>
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                      <span>Pilih layanan sesuai kebutuhan rumah, kantor, atau olahraga Anda</span>
                       <Link
                         href="/#layanan"
                         onClick={() => setDropdownOpen(false)}
-                        className="font-bold text-brand-600 hover:underline"
+                        className="font-bold text-brand-600 hover:underline shrink-0"
                       >
                         Lihat Semua Layanan →
                       </Link>
@@ -277,22 +295,28 @@ export function Navbar() {
                       ))}
                     </ul>
                   </div>
+
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wider text-teal-700 mb-2">Sport</p>
+                    <ul className="space-y-1">
+                      {sportServices.map((s) => (
+                        <li key={s.id}>
+                          <Link
+                            href={`/tennis-coaching#prog-${s.id}`}
+                            onClick={() => {
+                              setOpen(false);
+                              setMobileServicesOpen(false);
+                            }}
+                            className="block rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                          >
+                            {s.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               )}
-            </li>
-
-            {/* HS Tennis Coaching Mobile Link */}
-            <li>
-              <Link
-                href="/tennis-coaching"
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-between py-2 text-sm font-bold text-slate-900 hover:text-emerald-600"
-              >
-                <span>🎾 HS Tennis Coaching</span>
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                  Sport
-                </span>
-              </Link>
             </li>
 
             {navLinks.map((l) => (
